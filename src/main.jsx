@@ -10,8 +10,6 @@ import Home from "@/pages/Home";
 import { Provider } from "react-redux";
 import store from "./redux/app/store";
 import { Toaster } from "./components/ui/sonner";
-import OTPVerification from "./components/auth/VerifyRegisterEmail";
-import OTPModalDemo from "./components/auth/OTPverificationModal";
 
 const router = createBrowserRouter([
   {
@@ -29,14 +27,6 @@ const router = createBrowserRouter([
       {
         path: "/register",
         element: <RegisterPage />,
-      },
-      {
-        path: "/otp-verify",
-        element: <OTPVerification />,
-      },
-      {
-        path: "/otp-modal",
-        element: <OTPModalDemo />,
       },
     ],
   },

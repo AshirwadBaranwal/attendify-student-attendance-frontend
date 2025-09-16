@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
+import OTPModal from "@/components/auth/OTPModal";
 
 const registerSchema = z
   .object({
@@ -104,11 +105,18 @@ const LoginLink = memo(() => (
 ));
 
 export default function RegisterPage() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [isOTPDialogOpen, setIsOTPDialogOpen] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState("");
 
+  const openModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+  };
   // React Hook Form setup with optimized mode
   const {
     register,
@@ -146,7 +154,7 @@ export default function RegisterPage() {
     console.log("===================================");
 
     setLoading(true);
-
+    openModal();
     try {
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 2000));
@@ -157,7 +165,6 @@ export default function RegisterPage() {
 
       // Simulate successful registration
       setRegisteredEmail(data.email);
-      setIsOTPDialogOpen(true);
     } catch (error) {
       console.error("❌ Registration error:", error);
       console.log("🚨 Registration failed - please try again");
@@ -169,22 +176,6 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
-      {/* OTP Dialog placeholder */}
-      {isOTPDialogOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg max-w-md">
-            <h3 className="text-lg font-bold mb-4">OTP Verification</h3>
-            <p className="text-gray-600 mb-4">OTP sent to: {registeredEmail}</p>
-            <button
-              onClick={() => setIsOTPDialogOpen(false)}
-              className="px-4 py-2 bg-primary text-white rounded-md"
-            >
-              Close (Demo)
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* Left Side Image */}
       <LeftSideImage />
 
@@ -268,6 +259,7 @@ export default function RegisterPage() {
           <LoginLink />
         </div>
       </div>
+      <OTPModal isOpen={isModalOpen} onClose={closeModal} useCase="login" />
     </div>
   );
 }
