@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import axiosClient from "@/utils/axios/axios";
 
 // Schema for password validation
 const passwordSchema = z
@@ -50,34 +51,25 @@ const SetPasswordModal = ({ isOpen, onClose, email, onSuccess }) => {
       try {
         setIsLoading(true);
 
-        const response = await fetch(
-          "http://localhost:5000/api/v1/auth/college-admin/reset-forgot-password",
+        const response = await axiosClient.post(
+          "/auth/college-admin/reset-forgot-password",
           {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              email,
-              newPassword: data.newPassword,
-            }),
+            email,
+            newPassword: data.newPassword,
           }
         );
 
-        // Check if response has content before parsing JSON
-        const text = await response.text();
-        const result = text.length ? JSON.parse(text) : {};
-
-        if (!response.ok) {
-          throw new Error(result.message || "Failed to reset password");
-        }
-
+        toast.success(response.data.message || "Password reset successfully");
         reset();
         if (onSuccess) {
           onSuccess();
         }
       } catch (error) {
-        toast.error(error.message || "Something went wrong");
+        toast.error(
+          error.response?.data?.message || 
+          error.message || 
+          "Failed to reset password"
+        );
       } finally {
         setIsLoading(false);
       }

@@ -8,6 +8,7 @@ import SetPasswordModal from "./SetPasswordModal";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import axiosClient from "@/utils/axios/axios";
 
 // Schema for email validation
 const emailSchema = z.object({
@@ -40,29 +41,19 @@ const ForgotPasswordModal = ({ isOpen, onClose }) => {
       setIsLoading(true);
       setEmail(data.email);
 
-      const response = await fetch(
-        "http://localhost:5000/api/v1/auth/college-admin/send-forgot-password-otp",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ email: data.email }),
-        }
+      const response = await axiosClient.post(
+        "/auth/college-admin/send-forgot-password-otp",
+        { email: data.email }
       );
 
-      // Check if response has content before parsing JSON
-      const text = await response.text();
-      const result = text.length ? JSON.parse(text) : {};
-
-      if (!response.ok) {
-        throw new Error(result.message || "Failed to send reset email");
-      }
-
-      toast.success("Reset code sent to your email");
+      toast.success(response.data.message || "Reset code sent to your email");
       setShowOTPModal(true);
     } catch (error) {
-      toast.error(error.message || "Something went wrong");
+      toast.error(
+        error.response?.data?.message || 
+        error.message || 
+        "Failed to send reset email"
+      );
     } finally {
       setIsLoading(false);
     }
@@ -78,30 +69,20 @@ const ForgotPasswordModal = ({ isOpen, onClose }) => {
     try {
       setIsVerifyingOtp(true);
 
-      const response = await fetch(
-        "http://localhost:5000/api/v1/auth/college-admin/verify-forgot-password-otp",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ email, otp }),
-        }
+      const response = await axiosClient.post(
+        "/auth/college-admin/verify-forgot-password-otp",
+        { email, otp }
       );
 
-      // Check if response has content before parsing JSON
-      const text = await response.text();
-      const result = text.length ? JSON.parse(text) : {};
-
-      if (!response.ok) {
-        throw new Error(result.message || "Failed to verify OTP");
-      }
-
-      toast.success("OTP verified successfully");
+      toast.success(response.data.message || "OTP verified successfully");
       setShowOTPModal(false);
       setShowSetPasswordModal(true);
     } catch (error) {
-      toast.error(error.message || "Invalid or expired OTP");
+      toast.error(
+        error.response?.data?.message || 
+        error.message || 
+        "Invalid or expired OTP"
+      );
     } finally {
       setIsVerifyingOtp(false);
     }
@@ -112,28 +93,18 @@ const ForgotPasswordModal = ({ isOpen, onClose }) => {
     try {
       setIsLoading(true);
 
-      const response = await fetch(
-        "http://localhost:5000/api/v1/auth/college-admin/resend-forgot-password-otp",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ email }),
-        }
+      const response = await axiosClient.post(
+        "/auth/college-admin/resend-forgot-password-otp",
+        { email }
       );
 
-      // Check if response has content before parsing JSON
-      const text = await response.text();
-      const result = text.length ? JSON.parse(text) : {};
-
-      if (!response.ok) {
-        throw new Error(result.message || "Failed to resend OTP");
-      }
-
-      toast.success("New OTP sent to your email");
+      toast.success(response.data.message || "New OTP sent to your email");
     } catch (error) {
-      toast.error(error.message || "Failed to resend OTP");
+      toast.error(
+        error.response?.data?.message || 
+        error.message || 
+        "Failed to resend OTP"
+      );
     } finally {
       setIsLoading(false);
     }

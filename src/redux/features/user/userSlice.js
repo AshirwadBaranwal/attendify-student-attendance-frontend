@@ -11,8 +11,10 @@ export const fetchUser = createAsyncThunk(
       return res.data;
     } catch (err) {
       console.error("Error fetching user data:", err);
+      const errorMessage = err?.response?.data?.message || "Failed to fetch user data";
+      toast.error(errorMessage);
       return thunkAPI.rejectWithValue(
-        err?.response?.data || "Fetch user failed"
+        err?.response?.data || { message: "Fetch user failed" }
       );
     }
   }
@@ -26,7 +28,7 @@ export const login = createAsyncThunk(
         "/auth/college-admin/login",
         credentials
       );
-      toast.success("Login successful!");
+      toast.success(res?.data?.message || "Login successful!");
       return res.data;
     } catch (err) {
       // Check if the error is due to unverified user
@@ -35,13 +37,13 @@ export const login = createAsyncThunk(
         return thunkAPI.rejectWithValue({
           unverified: true,
           email: credentials.email,
-          message: "Account not verified. Please verify your email."
+          message: err?.response?.data?.message || "Account not verified. Please verify your email."
         });
       }
       
       const errorMessage = err?.response?.data?.message || "Login failed";
       toast.error(errorMessage);
-      return thunkAPI.rejectWithValue(err?.response?.data);
+      return thunkAPI.rejectWithValue(err?.response?.data || { message: errorMessage });
     }
   }
 );
@@ -54,14 +56,14 @@ export const register = createAsyncThunk(
         "/auth/college-admin/register",
         userData
       );
-      toast.success("Registration successful! Please verify your email.");
+      toast.success(res?.data?.message || "Registration successful! Please verify your email.");
       // Ensure we return an object with email property
-      return { email: userData.email };
+      return { email: userData.email, ...res.data };
     } catch (err) {
       const errorMessage =
         err?.response?.data?.message || "Registration failed";
       toast.error(errorMessage);
-      return thunkAPI.rejectWithValue(err?.response?.data);
+      return thunkAPI.rejectWithValue(err?.response?.data || { message: errorMessage });
     }
   }
 );
@@ -74,13 +76,13 @@ export const verifyOTP = createAsyncThunk(
         email,
         otp,
       });
-      toast.success("Email verified successfully!");
+      toast.success(res?.data?.message || "Email verified successfully!");
       return res.data.user;
     } catch (err) {
       const errorMessage =
         err?.response?.data?.message || "OTP verification failed";
       toast.error(errorMessage);
-      return thunkAPI.rejectWithValue(err?.response?.data);
+      return thunkAPI.rejectWithValue(err?.response?.data || { message: errorMessage });
     }
   }
 );
@@ -93,13 +95,13 @@ export const resendOTP = createAsyncThunk(
         "/auth/college-admin/resend-verification-otp",
         { email }
       );
-      toast.success("Verification code resent to your email");
+      toast.success(res?.data?.message || "Verification code resent to your email");
       return res.data;
     } catch (err) {
       const errorMessage =
         err?.response?.data?.message || "Failed to resend OTP";
       toast.error(errorMessage);
-      return thunkAPI.rejectWithValue(err?.response?.data);
+      return thunkAPI.rejectWithValue(err?.response?.data || { message: errorMessage });
     }
   }
 );
@@ -109,11 +111,12 @@ export const updateUserProfile = createAsyncThunk(
   async (userData, thunkAPI) => {
     try {
       const res = await axiosClient.put("/user/update", userData);
-      toast.success("Profile updated successfully");
+      toast.success(res?.data?.message || "Profile updated successfully");
       return res.data.user;
     } catch (err) {
-      toast.error(err?.response?.data?.message || "Failed to update profile");
-      return thunkAPI.rejectWithValue(err?.response?.data);
+      const errorMessage = err?.response?.data?.message || "Failed to update profile";
+      toast.error(errorMessage);
+      return thunkAPI.rejectWithValue(err?.response?.data || { message: errorMessage });
     }
   }
 );
@@ -122,11 +125,12 @@ export const logout = createAsyncThunk(
   "/auth/college-admin/logout",
   async (_, thunkAPI) => {
     try {
-      await axiosClient.post("/logout");
-      toast.success("Logged out successfully");
+      const res = await axiosClient.post("/logout");
+      toast.success(res?.data?.message || "Logged out successfully");
       window.location.href = "/login";
     } catch (err) {
-      toast.error("Error logging out");
+      toast.error(err?.response?.data?.message || "Error logging out");
+      return thunkAPI.rejectWithValue(err?.response?.data || { message: "Logout failed" });
     }
   }
 );
@@ -136,10 +140,13 @@ export const restartVerification = createAsyncThunk(
   async (email, thunkAPI) => {
     try {
       const res = await axiosClient.post("/restart-verification", { email });
+      toast.success(res?.data?.message || "Verification restarted successfully");
       return res.data.email;
     } catch (err) {
       console.error("Error restartVerification:", err);
-      return thunkAPI.rejectWithValue(err?.response?.data);
+      const errorMessage = err?.response?.data?.message || "Failed to restart verification";
+      toast.error(errorMessage);
+      return thunkAPI.rejectWithValue(err?.response?.data || { message: errorMessage });
     }
   }
 );
