@@ -5,8 +5,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
 import OTPModal from "@/components/auth/OTPModal";
 import { useDispatch, useSelector } from "react-redux";
-import { register as registerUser, verifyOTP, resendOTP, clearError } from "@/redux/features/user/userSlice";
-import { useNavigate } from "react-router-dom";
+import {
+  register as registerUser,
+  verifyOTP,
+  resendOTP,
+  clearError,
+} from "@/redux/features/user/userSlice";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 const registerSchema = z
@@ -98,13 +103,9 @@ const Button = memo(
 const LoginLink = memo(() => (
   <p className="text-center text-sm text-gray-600">
     Already have an account?{" "}
-    <button
-      type="button"
-      onClick={() => console.log("Navigate to login")}
-      className="text-primary hover:underline"
-    >
+    <Link to="/login" className="text-primary hover:underline">
       Login
-    </button>
+    </Link>
   </p>
 ));
 
@@ -112,10 +113,10 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [otpValue, setOtpValue] = useState("");
-  
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  
+
   // Get state from Redux
   const { registering, verifying, error, registeredEmail } = useSelector(
     (state) => state.user
@@ -168,7 +169,7 @@ export default function RegisterPage() {
       dispatch(verifyOTP({ email: registeredEmail, otp: otpValue }))
         .unwrap()
         .then(() => {
-          // Navigate to dashboard on successful verification
+          // THIS BLOCK IS LIKELY NOT RUNNING
           navigate("/dashboard");
         })
         .catch((err) => {
@@ -187,12 +188,15 @@ export default function RegisterPage() {
   }, [registeredEmail, dispatch]);
 
   // Submit handler for registration
-  const onSubmit = useCallback(async (data) => {
-    // Remove confirmPassword as it's not needed for the API
-    const { confirmPassword, ...registrationData } = data;
-    
-    dispatch(registerUser(registrationData));
-  }, [dispatch]);
+  const onSubmit = useCallback(
+    async (data) => {
+      // Remove confirmPassword as it's not needed for the API
+      const { confirmPassword, ...registrationData } = data;
+
+      dispatch(registerUser(registrationData));
+    },
+    [dispatch]
+  );
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
@@ -205,12 +209,12 @@ export default function RegisterPage() {
 
         <div className="w-full max-w-lg space-y-4 rounded-xl p-8">
           {/* Error Alert */}
-          {error && (
+          {/* {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative flex items-center" role="alert">
               <AlertCircle className="h-5 w-5 mr-2" />
               <span>{error?.message || "An error occurred during registration"}</span>
             </div>
-          )}
+          )} */}
 
           {/* Name Field */}
           <InputField
@@ -287,12 +291,12 @@ export default function RegisterPage() {
           <LoginLink />
         </div>
       </div>
-      
+
       {/* OTP Modal */}
-      <OTPModal 
-        isOpen={isModalOpen} 
-        onClose={closeModal} 
-        useCase="register" 
+      <OTPModal
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        useCase="register"
         onOtpChange={handleOtpChange}
         onVerify={handleVerifyOtp}
         onResend={handleResendOtp}

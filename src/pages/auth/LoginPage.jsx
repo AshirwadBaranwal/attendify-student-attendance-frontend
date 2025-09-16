@@ -4,8 +4,13 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
-import { login, verifyOTP, resendOTP, clearError } from "@/redux/features/user/userSlice";
-import { useNavigate } from "react-router-dom";
+import {
+  login,
+  verifyOTP,
+  resendOTP,
+  clearError,
+} from "@/redux/features/user/userSlice";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import OTPModal from "@/components/auth/OTPModal";
 import ForgotPasswordModal from "@/components/auth/ForgotPasswordModal";
@@ -36,13 +41,9 @@ const WelcomeHeader = memo(() => (
     <h2 className="text-4xl font-bold text-gray-800 mb-2">Welcome back.</h2>
     <p className="text-gray-600 text-lg">
       New to Attendify?{" "}
-      <button
-        type="button"
-        onClick={() => console.log("Navigate to register")}
-        className="text-primary hover:underline"
-      >
+      <Link to="/register" className="text-primary hover:underline">
         Create an account
-      </button>
+      </Link>
     </p>
   </div>
 ));
@@ -108,10 +109,10 @@ export default function Login() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [otpValue, setOtpValue] = useState("");
   const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
-  
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  
+
   // Get state from Redux
   const { loggingIn, verifying, error, unverifiedEmail } = useSelector(
     (state) => state.user
@@ -181,18 +182,21 @@ export default function Login() {
     }
   }, [unverifiedEmail, dispatch]);
 
-  // Submit handler for login
-  const onSubmit = useCallback((data) => {
-    dispatch(login(data))
-      .unwrap()
-      .then(() => {
-        navigate("/dashboard");
-      })
-      .catch((err) => {
-        // Error handling is done in the reducer
-        // If user is unverified, the OTP modal will open automatically
-      });
-  }, [dispatch, navigate]);
+  const onSubmit = useCallback(
+    (data) => {
+      dispatch(login(data))
+        .unwrap()
+        .then(() => {
+          navigate("/dashboard");
+        })
+        .catch((rejectedValue) => {
+          // THIS BLOCK IS LIKELY RUNNING INSTEAD
+          console.error("Login rejected:", rejectedValue);
+          // No navigation happens here, the modal might open if the error is 'unverified'
+        });
+    },
+    [dispatch, navigate]
+  );
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-background font-inter">
@@ -200,18 +204,21 @@ export default function Login() {
       <LeftSideImage />
 
       {/* Right Side: Login Form */}
-      <div className="w-full md:w-1/2 flex flex-col justify-center items-center px-6 py-10">
+      <div className="w-full md:w-1/2 flex flex-col justify-center items-center px-6 py-6 max-h-screen overflow-auto">
         <div className="w-full max-w-lg space-y-6 rounded-3xl p-10">
           {/* Welcome Text */}
           <WelcomeHeader />
 
           {/* Error Alert */}
-          {error && !error.unverified && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative flex items-center" role="alert">
+          {/* {error && !error.unverified && (
+            <div
+              className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative flex items-center"
+              role="alert"
+            >
               <AlertCircle className="h-5 w-5 mr-2" />
               <span>{error?.message || "An error occurred during login"}</span>
             </div>
-          )}
+          )} */}
 
           {/* Login Form */}
           <div className="space-y-6">
@@ -270,10 +277,10 @@ export default function Login() {
       </div>
 
       {/* OTP Modal for unverified users */}
-      <OTPModal 
-        isOpen={isModalOpen} 
-        onClose={closeModal} 
-        useCase="login" 
+      <OTPModal
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        useCase="login"
         onOtpChange={handleOtpChange}
         onVerify={handleVerifyOtp}
         onResend={handleResendOtp}
