@@ -1,9 +1,13 @@
-import React, { useState, useCallback, memo } from "react";
+import React, { useState, useCallback, memo, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
 import OTPModal from "@/components/auth/OTPModal";
+import { useDispatch, useSelector } from "react-redux";
+import { register as registerUser, verifyOTP, resendOTP, clearError } from "@/redux/features/user/userSlice";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 const registerSchema = z
   .object({
@@ -105,18 +109,31 @@ const LoginLink = memo(() => (
 ));
 
 export default function RegisterPage() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [registeredEmail, setRegisteredEmail] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [otpValue, setOtpValue] = useState("");
+  
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  
+  // Get state from Redux
+  const { registering, verifying, error, registeredEmail } = useSelector(
+    (state) => state.user
+  );
 
-  const openModal = () => {
-    setIsModalOpen(true);
-  };
+  // Open OTP modal when registration is successful
+  useEffect(() => {
+    if (registeredEmail) {
+      setIsModalOpen(true);
+    }
+  }, [registeredEmail]);
 
+  // Close modal and clear any errors
   const closeModal = () => {
     setIsModalOpen(false);
+    dispatch(clearError());
   };
+
   // React Hook Form setup with optimized mode
   const {
     register,
@@ -140,39 +157,42 @@ export default function RegisterPage() {
     setShowPassword((prev) => !prev);
   }, []);
 
-  // Clean and optimized submit handler with detailed logging
-  const onSubmit = useCallback(async (data) => {
-    console.log("=== REGISTER FORM SUBMISSION ===");
-    console.log("👤 Full Name:", data.name);
-    console.log("📧 Email:", data.email);
-    console.log("📱 Phone:", data.phone);
-    console.log("🔐 Password:", data.password);
-    console.log("🔐 Confirm Password:", data.confirmPassword);
-    console.log("📊 Complete Form Data:", data);
-    console.log("⏰ Timestamp:", new Date().toISOString());
-    console.log("🔍 Form Validation Status: PASSED");
-    console.log("===================================");
-
-    setLoading(true);
-    openModal();
-    try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      console.log("✅ Registration simulation completed");
-      console.log("🎉 Registration successful!");
-      console.log("📧 Registered email for OTP:", data.email);
-
-      // Simulate successful registration
-      setRegisteredEmail(data.email);
-    } catch (error) {
-      console.error("❌ Registration error:", error);
-      console.log("🚨 Registration failed - please try again");
-    } finally {
-      setLoading(false);
-      console.log("🔄 Loading state reset");
-    }
+  // Handle OTP input change
+  const handleOtpChange = useCallback((otp) => {
+    setOtpValue(otp);
   }, []);
+
+  // Handle OTP verification
+  const handleVerifyOtp = useCallback(() => {
+    if (otpValue.length === 6 && registeredEmail) {
+      dispatch(verifyOTP({ email: registeredEmail, otp: otpValue }))
+        .unwrap()
+        .then(() => {
+          // Navigate to dashboard on successful verification
+          navigate("/dashboard");
+        })
+        .catch((err) => {
+          // Error is handled by the reducer and displayed in the UI
+        });
+    } else {
+      toast.error("Please enter a valid 6-digit OTP");
+    }
+  }, [otpValue, registeredEmail, dispatch, navigate]);
+
+  // Handle resend OTP
+  const handleResendOtp = useCallback(() => {
+    if (registeredEmail) {
+      dispatch(resendOTP(registeredEmail));
+    }
+  }, [registeredEmail, dispatch]);
+
+  // Submit handler for registration
+  const onSubmit = useCallback(async (data) => {
+    // Remove confirmPassword as it's not needed for the API
+    const { confirmPassword, ...registrationData } = data;
+    
+    dispatch(registerUser(registrationData));
+  }, [dispatch]);
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
@@ -184,6 +204,14 @@ export default function RegisterPage() {
         <PageHeader />
 
         <div className="w-full max-w-lg space-y-4 rounded-xl p-8">
+          {/* Error Alert */}
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative flex items-center" role="alert">
+              <AlertCircle className="h-5 w-5 mr-2" />
+              <span>{error?.message || "An error occurred during registration"}</span>
+            </div>
+          )}
+
           {/* Name Field */}
           <InputField
             id="name"
@@ -242,10 +270,10 @@ export default function RegisterPage() {
           <Button
             type="button"
             onClick={handleSubmit(onSubmit)}
-            disabled={loading}
+            disabled={registering}
             className="w-full disabled:opacity-50"
           >
-            {loading ? (
+            {registering ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Registering...
@@ -259,7 +287,18 @@ export default function RegisterPage() {
           <LoginLink />
         </div>
       </div>
-      <OTPModal isOpen={isModalOpen} onClose={closeModal} useCase="login" />
+      
+      {/* OTP Modal */}
+      <OTPModal 
+        isOpen={isModalOpen} 
+        onClose={closeModal} 
+        useCase="register" 
+        onOtpChange={handleOtpChange}
+        onVerify={handleVerifyOtp}
+        onResend={handleResendOtp}
+        isVerifying={verifying}
+        email={registeredEmail}
+      />
     </div>
   );
 }

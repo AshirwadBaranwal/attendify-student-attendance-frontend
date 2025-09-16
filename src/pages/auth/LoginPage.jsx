@@ -2,7 +2,13 @@ import React, { useEffect, useState, useCallback, memo } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
+import { useDispatch, useSelector } from "react-redux";
+import { login, verifyOTP, resendOTP, clearError } from "@/redux/features/user/userSlice";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import OTPModal from "@/components/auth/OTPModal";
+import ForgotPasswordModal from "@/components/auth/ForgotPasswordModal";
 
 // Zod schema for form validation
 const loginSchema = z.object({
@@ -99,7 +105,30 @@ const Button = memo(
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [otpValue, setOtpValue] = useState("");
+  const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
+  
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  
+  // Get state from Redux
+  const { loggingIn, verifying, error, unverifiedEmail } = useSelector(
+    (state) => state.user
+  );
+
+  // Open OTP modal when unverified user tries to login
+  useEffect(() => {
+    if (unverifiedEmail) {
+      setIsModalOpen(true);
+    }
+  }, [unverifiedEmail]);
+
+  // Close modal and clear any errors
+  const closeModal = useCallback(() => {
+    setIsModalOpen(false);
+    dispatch(clearError());
+  }, [dispatch]);
 
   // React Hook Form setup with optimized mode
   const {
@@ -119,33 +148,51 @@ export default function Login() {
 
   // Memoized forgot password handler
   const handleForgotPassword = useCallback(() => {
-    console.log("Open forgot password dialog");
+    setIsForgotPasswordOpen(true);
   }, []);
 
-  // Optimized submit handler - clean and simple
-  const onSubmit = useCallback(async (data) => {
-    console.log("=== LOGIN FORM SUBMISSION ===");
-    console.log("📧 Email:", data.email);
-    console.log("🔐 Password:", data.password);
-    console.log("📊 Form Data:", data);
-    console.log("⏰ Timestamp:", new Date().toISOString());
-    console.log("================================");
+  // Handle OTP input change
+  const handleOtpChange = useCallback((otp) => {
+    setOtpValue(otp);
+  }, []);
 
-    // Simulate loading state
-    setIsSubmitting(true);
-
-    try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      console.log("✅ Login simulation completed");
-      console.log("🎉 Login successful!");
-    } catch (error) {
-      console.error("❌ Login error:", error);
-    } finally {
-      setIsSubmitting(false);
+  // Handle OTP verification
+  const handleVerifyOtp = useCallback(() => {
+    if (otpValue.length === 6 && unverifiedEmail) {
+      dispatch(verifyOTP({ email: unverifiedEmail, otp: otpValue }))
+        .unwrap()
+        .then(() => {
+          // Close modal and navigate to dashboard on successful verification
+          setIsModalOpen(false);
+          navigate("/dashboard");
+        })
+        .catch((err) => {
+          // Error is handled by the reducer and displayed in the UI
+        });
+    } else {
+      toast.error("Please enter a valid 6-digit OTP");
     }
-  }, []);
+  }, [otpValue, unverifiedEmail, dispatch, navigate]);
+
+  // Handle resend OTP
+  const handleResendOtp = useCallback(() => {
+    if (unverifiedEmail) {
+      dispatch(resendOTP(unverifiedEmail));
+    }
+  }, [unverifiedEmail, dispatch]);
+
+  // Submit handler for login
+  const onSubmit = useCallback((data) => {
+    dispatch(login(data))
+      .unwrap()
+      .then(() => {
+        navigate("/dashboard");
+      })
+      .catch((err) => {
+        // Error handling is done in the reducer
+        // If user is unverified, the OTP modal will open automatically
+      });
+  }, [dispatch, navigate]);
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-background font-inter">
@@ -157,6 +204,14 @@ export default function Login() {
         <div className="w-full max-w-lg space-y-6 rounded-3xl p-10">
           {/* Welcome Text */}
           <WelcomeHeader />
+
+          {/* Error Alert */}
+          {error && !error.unverified && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative flex items-center" role="alert">
+              <AlertCircle className="h-5 w-5 mr-2" />
+              <span>{error?.message || "An error occurred during login"}</span>
+            </div>
+          )}
 
           {/* Login Form */}
           <div className="space-y-6">
@@ -198,14 +253,39 @@ export default function Login() {
             <Button
               type="button"
               onClick={handleSubmit(onSubmit)}
-              disabled={isSubmitting}
+              disabled={loggingIn}
               className="w-full"
             >
-              {isSubmitting ? "Signing In..." : "Sign In"}
+              {loggingIn ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Signing In...
+                </>
+              ) : (
+                "Sign In"
+              )}
             </Button>
           </div>
         </div>
       </div>
+
+      {/* OTP Modal for unverified users */}
+      <OTPModal 
+        isOpen={isModalOpen} 
+        onClose={closeModal} 
+        useCase="login" 
+        onOtpChange={handleOtpChange}
+        onVerify={handleVerifyOtp}
+        onResend={handleResendOtp}
+        isVerifying={verifying}
+        email={unverifiedEmail}
+      />
+
+      {/* Forgot Password Modal */}
+      <ForgotPasswordModal
+        isOpen={isForgotPasswordOpen}
+        onClose={() => setIsForgotPasswordOpen(false)}
+      />
     </div>
   );
 }

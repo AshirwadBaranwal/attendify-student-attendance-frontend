@@ -1,6 +1,7 @@
 // OtpModal.js
 import React, { useState, useRef, useEffect, useCallback, memo } from "react";
 import { Button } from "../ui/button";
+import { Loader2 } from "lucide-react";
 
 // Content is defined outside the component to prevent re-creation on each render
 const contentMap = {
@@ -23,7 +24,16 @@ const contentMap = {
 
 const OTP_LENGTH = 6;
 
-const OtpModal = ({ isOpen, onClose, useCase = "register", onSubmit }) => {
+const OtpModal = ({
+  isOpen,
+  onClose,
+  useCase = "register",
+  onOtpChange,
+  onVerify,
+  onResend,
+  isVerifying = false,
+  email,
+}) => {
   const [otp, setOtp] = useState(new Array(OTP_LENGTH).fill(""));
   const inputRefs = useRef([]);
 
@@ -36,6 +46,13 @@ const OtpModal = ({ isOpen, onClose, useCase = "register", onSubmit }) => {
       inputRefs.current[0]?.focus();
     }
   }, [isOpen]);
+
+  // Call onOtpChange when OTP changes
+  useEffect(() => {
+    if (onOtpChange) {
+      onOtpChange(otp.join(""));
+    }
+  }, [otp, onOtpChange]);
 
   const handleChange = useCallback(
     (element, index) => {
@@ -77,12 +94,13 @@ const OtpModal = ({ isOpen, onClose, useCase = "register", onSubmit }) => {
   const handleSubmit = useCallback(() => {
     const enteredOtp = otp.join("");
     if (enteredOtp.length === OTP_LENGTH) {
-      // ✅ Call the new onSubmit prop instead of handling logic here
-      onSubmit(enteredOtp);
+      if (onVerify) {
+        onVerify();
+      }
     } else {
       alert("❌ Please enter a complete 6-digit OTP.");
     }
-  }, [otp, onSubmit]); // Update dependencies
+  }, [otp, onVerify]);
 
   // Don't render the modal if it's not open
   if (!isOpen) return null;
@@ -100,6 +118,12 @@ const OtpModal = ({ isOpen, onClose, useCase = "register", onSubmit }) => {
         <h2 className="text-2xl font-bold">{currentContent.title}</h2>
         <p className="mb-6 mt-2 text-gray-600">{currentContent.description}</p>
 
+        {email && (
+          <p className="mb-4 text-sm text-gray-500">
+            Code sent to: <span className="font-medium">{email}</span>
+          </p>
+        )}
+
         <div
           className="mb-8 flex justify-center gap-2 sm:gap-4"
           onPaste={handlePaste}
@@ -113,14 +137,37 @@ const OtpModal = ({ isOpen, onClose, useCase = "register", onSubmit }) => {
               ref={(el) => (inputRefs.current[index] = el)}
               onChange={(e) => handleChange(e.target, index)}
               onKeyDown={(e) => handleKeyDown(e, index)}
-              className="h-10 w-10 rounded-sm  border border-gray-300 text-center text-xl font-semibold outline-none focus:border-primary focus:ring-1 focus:ring-primary "
+              className="h-10 w-10 rounded-sm border border-gray-300 text-center text-xl font-semibold outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+              disabled={isVerifying}
             />
           ))}
         </div>
 
-        <Button onClick={handleSubmit} className="w-full py-5">
-          Verify OTP
+        <Button
+          onClick={handleSubmit}
+          className="w-full py-5 mb-3"
+          disabled={isVerifying}
+        >
+          {isVerifying ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Verifying...
+            </>
+          ) : (
+            "Verify OTP"
+          )}
         </Button>
+
+        {onResend && (
+          <button
+            type="button"
+            onClick={onResend}
+            className="text-sm text-primary hover:underline"
+            disabled={isVerifying}
+          >
+            Didn't receive the code? Resend
+          </button>
+        )}
       </div>
     </div>
   );

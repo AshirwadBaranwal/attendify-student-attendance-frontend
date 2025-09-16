@@ -7,6 +7,7 @@ import ProtectedRoute from "@/components/global/ProtectedRoute";
 import LoginPage from "@/pages/auth/LoginPage";
 import RegisterPage from "@/pages/auth/RegisterPage";
 import Home from "@/pages/Home";
+import Dashboard from "@/pages/dashboard/dashboard";
 import { Provider } from "react-redux";
 import store from "./redux/app/store";
 import { Toaster } from "./components/ui/sonner";
@@ -27,6 +28,10 @@ const router = createBrowserRouter([
       {
         path: "/register",
         element: <RegisterPage />,
+      },
+      {
+        path: "/dashboard",
+        element: <Dashboard />,
       },
     ],
   },
