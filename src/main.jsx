@@ -13,6 +13,7 @@ import { Provider } from "react-redux";
 import store from "./redux/app/store";
 import { Toaster } from "./components/ui/sonner";
 import AppLayout from "./components/global/AppLayout";
+import SidebarLayout from "./pages/dashboard/sidebarLayout";
 
 const router = createBrowserRouter([
   {
@@ -27,13 +28,14 @@ const router = createBrowserRouter([
         children: [
           {
             path: "/", // Matches the root path
-            element: <Home />,
+            element: <SidebarLayout />,
+            children: [
+              {
+                path: "/",
+                element: <Dashboard />,
+              },
+            ],
           },
-          {
-            path: "dashboard", // No leading slash
-            element: <Dashboard />,
-          },
-          // Add other protected routes here
         ],
       },
       // --- Public Routes ---

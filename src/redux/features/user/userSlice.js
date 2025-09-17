@@ -1,4 +1,3 @@
-// Todo: Will be used later when user auth is added
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axiosClient from "@/utils/axios/axios";
 import { toast } from "sonner";
