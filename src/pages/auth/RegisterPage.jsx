@@ -170,7 +170,7 @@ export default function RegisterPage() {
         .unwrap()
         .then(() => {
           // THIS BLOCK IS LIKELY NOT RUNNING
-          navigate("/dashboard");
+          navigate("/");
         })
         .catch((err) => {
           // Error is handled by the reducer and displayed in the UI

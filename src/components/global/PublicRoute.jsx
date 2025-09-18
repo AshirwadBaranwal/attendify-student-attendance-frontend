@@ -8,7 +8,7 @@ const PublicRoute = () => {
 
   // If a user exists, they are logged in. Redirect them away from public pages.
   if (user) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/" replace />;
   }
 
   // If no user, render the public route (e.g., Login, Register).

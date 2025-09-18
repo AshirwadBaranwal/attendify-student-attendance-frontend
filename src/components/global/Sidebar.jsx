@@ -147,7 +147,7 @@ const Sidebar = () => {
   };
 
   return (
-    <aside className="h-screen w-64 bg-[#192030] text-white flex flex-col shrink-0">
+    <aside className="h-screen w-64 bg-[#192030] text-white flex flex-col shrink-0 select-none">
       {/* Header */}
       <div className="flex items-center gap-3 h-16 px-6 border-b border-gray-700 shrink-0">
         <img src="/logo.png" alt="logo" className="w-8 h-8" />

@@ -1,7 +1,7 @@
-// src/components/global/ProtectedRoute.js
 import React from "react";
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate, Outlet, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
+import AddCollegePage from "@/pages/AddCollegePage";
 
 const ProtectedRoute = () => {
   // loading state is already handled by AppLayout, we just need the user status
@@ -11,6 +11,10 @@ const ProtectedRoute = () => {
   // The `replace` prop avoids adding a new entry to the history stack.
   if (!user) {
     return <Navigate to="/login" replace />;
+  }
+
+  if (user && !user.collegeAdmin?.collegeId) {
+    return <AddCollegePage />;
   }
 
   // If the user is authenticated, render the nested routes.

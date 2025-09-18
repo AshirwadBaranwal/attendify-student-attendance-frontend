@@ -165,7 +165,7 @@ export default function Login() {
         .then(() => {
           // Close modal and navigate to dashboard on successful verification
           setIsModalOpen(false);
-          navigate("/dashboard");
+          navigate("/");
         })
         .catch((err) => {
           // Error is handled by the reducer and displayed in the UI
@@ -187,7 +187,7 @@ export default function Login() {
       dispatch(login(data))
         .unwrap()
         .then(() => {
-          navigate("/dashboard");
+          navigate("/");
         })
         .catch((rejectedValue) => {
           // THIS BLOCK IS LIKELY RUNNING INSTEAD

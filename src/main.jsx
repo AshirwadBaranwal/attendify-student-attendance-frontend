@@ -1,19 +1,20 @@
-import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
-
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import ProtectedRoute from "@/components/global/ProtectedRoute";
 import PublicRoute from "@/components/global/PublicRoute";
 import LoginPage from "@/pages/auth/LoginPage";
 import RegisterPage from "@/pages/auth/RegisterPage";
-import Home from "@/pages/Home";
 import Dashboard from "@/pages/dashboard/dashboard";
 import { Provider } from "react-redux";
 import store from "./redux/app/store";
 import { Toaster } from "./components/ui/sonner";
 import AppLayout from "./components/global/AppLayout";
 import SidebarLayout from "./pages/dashboard/sidebarLayout";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import DepartmentPage from "./pages/department/departmentPage";
+
+const queryClient = new QueryClient();
 
 const router = createBrowserRouter([
   {
@@ -33,6 +34,10 @@ const router = createBrowserRouter([
               {
                 path: "/",
                 element: <Dashboard />,
+              },
+              {
+                path: "/departments",
+                element: <DepartmentPage />,
               },
             ],
           },
@@ -58,10 +63,10 @@ const router = createBrowserRouter([
 ]);
 
 createRoot(document.getElementById("root")).render(
-  <StrictMode>
+  <QueryClientProvider client={queryClient}>
     <Provider store={store}>
       <RouterProvider router={router} />
       <Toaster />
     </Provider>
-  </StrictMode>
+  </QueryClientProvider>
 );
