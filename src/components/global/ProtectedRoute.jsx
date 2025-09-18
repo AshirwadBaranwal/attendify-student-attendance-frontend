@@ -5,15 +5,15 @@ import AddCollegePage from "@/pages/AddCollegePage";
 
 const ProtectedRoute = () => {
   // loading state is already handled by AppLayout, we just need the user status
-  const { user } = useSelector((state) => state.user);
+  const { user, loading } = useSelector((state) => state.user);
 
   // If there's no user, redirect to the login page.
   // The `replace` prop avoids adding a new entry to the history stack.
-  if (!user) {
+  if (!loading && !user) {
     return <Navigate to="/login" replace />;
   }
 
-  if (user && !user.collegeAdmin?.collegeId) {
+  if (!loading && user && !user?.collegeAdmin?.collegeId?._id) {
     return <AddCollegePage />;
   }
 

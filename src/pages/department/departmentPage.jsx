@@ -5,6 +5,10 @@ import {
 } from "@/utils/api/Departments";
 import React from "react";
 import { useSelector } from "react-redux";
+import { DataTable } from "@/components/ui/data-table";
+import { Pencil, Trash, UserMinus } from "lucide-react";
+import Header from "@/components/global/Header";
+// Using Button for actions instead of dropdown to avoid dependency issues
 
 const DepartmentPage = () => {
   const { user } = useSelector((state) => state.user);
@@ -28,27 +32,107 @@ const DepartmentPage = () => {
   }
   const handleCreate = () => {
     createDepartment({
-      name: "BTech",
+      name: "MCA",
       academicType: "year",
       collegeId: collegeId, // API likely needs the college ID on creation
       headOfDepartment: {
-        name: "Rohit Mishra",
-        phone: "8507785550",
+        name: "Rudra Pratap Sharma",
+        phone: "8340131339",
       },
     });
   };
 
-  console.log(responseData);
+  // Format date for display
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
+
+  const columns = [
+    {
+      accessorKey: "slNo",
+      header: "Sl No.",
+      cell: ({ row }) => row.index + 1,
+    },
+    {
+      accessorKey: "name",
+      header: "Department Name",
+      cell: ({ row }) => row.original.name,
+    },
+    {
+      accessorKey: "adminId",
+      header: "Admin",
+      cell: ({ row }) =>
+        row.original.adminId || <p className="text-red-600">Not Assigned</p>,
+    },
+    {
+      accessorKey: "createdAt",
+      header: "Created At",
+      cell: ({ row }) => formatDate(row.original.createdAt),
+    },
+    {
+      accessorKey: "headOfDepartment.name",
+      header: "HOD Name",
+      cell: ({ row }) =>
+        row.original.headOfDepartment?.name || (
+          <p className="text-red-600">Not Assigned</p>
+        ),
+    },
+    {
+      accessorKey: "headOfDepartment.phone",
+      header: "HOD Phone",
+      cell: ({ row }) => "+91 " + row.original.headOfDepartment?.phone || "N/A",
+    },
+    {
+      id: "actions",
+      header: "Actions",
+      cell: ({ row }) => {
+        const department = row.original;
+
+        return (
+          <div className="flex space-x-2">
+            <Button variant="outline" size="sm" className="h-8 w-8 p-0">
+              <Pencil className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 w-8 p-0 text-yellow-600"
+            >
+              <UserMinus className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 w-8 p-0 text-red-600"
+            >
+              <Trash className="h-4 w-4" />
+            </Button>
+          </div>
+        );
+      },
+    },
+  ];
+
   return (
     <div>
-      <Button onClick={handleCreate} disabled={isCreating}>
-        {isCreating ? "Creating..." : "➕ Add New Department"}
-      </Button>
-      <h2>Departments</h2>
-      <div>
-        {responseData.data.map((item, index) => {
-          return <p key={index}>{item.name}</p>;
-        })}
+      <Header />
+      <div className="container mx-auto px-5 ">
+        <h1 className="text-2xl font-bold  py-3">Department Management</h1>
+        <DataTable
+          columns={columns}
+          data={responseData.data}
+          searchPlaceholder="Search departments..."
+          actionButton={
+            <Button onClick={handleCreate} disabled={isCreating}>
+              {isCreating ? "Creating..." : "Add New Department"}
+            </Button>
+          }
+        />
       </div>
     </div>
   );
