@@ -8,7 +8,6 @@ import { useSelector } from "react-redux";
 import { DataTable } from "@/components/ui/data-table";
 import { Pencil, Trash, UserMinus } from "lucide-react";
 import Header from "@/components/global/Header";
-// Using Button for actions instead of dropdown to avoid dependency issues
 
 const DepartmentPage = () => {
   const { user } = useSelector((state) => state.user);
@@ -32,12 +31,13 @@ const DepartmentPage = () => {
   }
   const handleCreate = () => {
     createDepartment({
-      name: "MCA",
-      academicType: "year",
+      name: "B.Sc IT",
+      academicType: "semester",
+      duration: 6,
       collegeId: collegeId, // API likely needs the college ID on creation
       headOfDepartment: {
-        name: "Rudra Pratap Sharma",
-        phone: "8340131339",
+        name: "Raunak Maan",
+        phone: "9609435124",
       },
     });
   };
@@ -57,11 +57,21 @@ const DepartmentPage = () => {
       accessorKey: "slNo",
       header: "Sl No.",
       cell: ({ row }) => row.index + 1,
+      enableSorting: false,
     },
     {
       accessorKey: "name",
       header: "Department Name",
       cell: ({ row }) => row.original.name,
+    },
+    {
+      accessorKey: "duration",
+      header: "Duration",
+      cell: ({ row }) =>
+        (row.original.duration || "N/A") +
+        " " +
+        (row.original.academicType || "N/A"),
+      enableSorting: false,
     },
     {
       accessorKey: "adminId",

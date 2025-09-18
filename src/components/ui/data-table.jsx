@@ -110,8 +110,8 @@ export function DataTable({
 
       {/* Table */}
       <div className="border">
-        <div className="relative overflow-auto" style={{ maxHeight: "60vh" }}>
-          <Table>
+        <div className=" overflow-auto" style={{ maxHeight: "56vh" }}>
+          <Table className="relative">
             <TableHeader className="sticky top-0 bg-background z-10">
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
@@ -155,7 +155,7 @@ export function DataTable({
             </TableHeader>
 
             {/* Table Body */}
-            <TableBody>
+            <TableBody className="pb-10">
               {table.getRowModel().rows?.length ? (
                 table.getRowModel().rows.map((row) => (
                   <TableRow
