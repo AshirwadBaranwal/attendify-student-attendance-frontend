@@ -8,11 +8,13 @@ const Dashboard = () => {
   return (
     <div className="">
       <Header />
-      <p>{user?.role}</p>
-      <p>{user?.collegeAdmin?.name}</p>
-      <p>{user?.collegeAdmin?.phone}</p>
-      <p>{user?.collegeAdmin?._id}</p>
-      <p>{user?.collegeAdmin?.profilePicture}</p>
+      <div className="p-5">
+        <p>{user?.role}</p>
+        <p>{user?.collegeAdmin?.name}</p>
+        <p>{user?.collegeAdmin?.phone}</p>
+        <p>{user?.collegeAdmin?._id}</p>
+        <p>{user?.collegeAdmin?.profilePicture}</p>
+      </div>
     </div>
   );
 };

@@ -13,6 +13,7 @@ import AppLayout from "./components/global/AppLayout";
 import SidebarLayout from "./pages/dashboard/sidebarLayout";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import DepartmentPage from "./pages/department/departmentPage";
+import AdminPage from "./pages/Admins/AdminPage";
 
 const queryClient = new QueryClient();
 
@@ -38,6 +39,10 @@ const router = createBrowserRouter([
               {
                 path: "/departments",
                 element: <DepartmentPage />,
+              },
+              {
+                path: "/admins",
+                element: <AdminPage />,
               },
             ],
           },

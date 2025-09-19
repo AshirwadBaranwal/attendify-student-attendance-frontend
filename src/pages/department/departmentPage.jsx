@@ -1,17 +1,22 @@
 import { Button } from "@/components/ui/button";
 import {
-  useCreateDepartment,
+  useDeleteDepartment,
   useGetDepartmentsByCollege,
 } from "@/utils/api/Departments";
-import React from "react";
+import React, { useState } from "react";
 import { useSelector } from "react-redux";
 import { DataTable } from "@/components/ui/data-table";
 import { Pencil, Trash, UserMinus } from "lucide-react";
 import Header from "@/components/global/Header";
+import { DepartmentModal } from "./departmentModal";
 
 const DepartmentPage = () => {
   const { user } = useSelector((state) => state.user);
+  const [openCreate, setOpenCreate] = useState(false);
+  const [openUpdate, setOpenUpdate] = useState(false);
+  const [selectedDepartment, setSelectedDepartment] = useState(null); // ✅ for update
   const collegeId = user?.collegeAdmin?.collegeId._id;
+
   const {
     data: responseData,
     isLoading,
@@ -19,8 +24,8 @@ const DepartmentPage = () => {
     error,
   } = useGetDepartmentsByCollege(collegeId);
 
-  const { mutate: createDepartment, isPending: isCreating } =
-    useCreateDepartment();
+  const { mutate: deleteDepartment, isPending: isDeleting } =
+    useDeleteDepartment();
 
   if (isLoading) {
     return <div>Loading departments...</div>;
@@ -29,17 +34,20 @@ const DepartmentPage = () => {
   if (isError) {
     return <div>An error occurred: {error.message}</div>;
   }
-  const handleCreate = () => {
-    createDepartment({
-      name: "B.Sc IT",
-      academicType: "semester",
-      duration: 6,
-      collegeId: collegeId, // API likely needs the college ID on creation
-      headOfDepartment: {
-        name: "Raunak Maan",
-        phone: "9609435124",
-      },
-    });
+
+  const handleOpenCreate = () => {
+    setOpenCreate(true);
+  };
+
+  const handleOpenUpdate = (department) => {
+    setSelectedDepartment(department); // ✅ save row data
+    setOpenUpdate(true);
+  };
+
+  const handleDelete = (department) => {
+    if (window.confirm(`Are you sure you want to delete ${department.name}?`)) {
+      deleteDepartment(department._id);
+    }
   };
 
   // Format date for display
@@ -105,9 +113,16 @@ const DepartmentPage = () => {
 
         return (
           <div className="flex space-x-2">
-            <Button variant="outline" size="sm" className="h-8 w-8 p-0">
+            {/* ✅ Pass row data on edit */}
+            <Button
+              onClick={() => handleOpenUpdate(department)}
+              variant="outline"
+              size="sm"
+              className="h-8 w-8 p-0"
+            >
               <Pencil className="h-4 w-4" />
             </Button>
+
             <Button
               variant="outline"
               size="sm"
@@ -115,10 +130,15 @@ const DepartmentPage = () => {
             >
               <UserMinus className="h-4 w-4" />
             </Button>
+
             <Button
               variant="outline"
               size="sm"
-              className="h-8 w-8 p-0 text-red-600"
+              className={`h-8 w-8 p-0 text-red-600 ${
+                isDeleting && "cursor-not-allowed"
+              }`}
+              disabled={isDeleting}
+              onClick={() => handleDelete(department)}
             >
               <Trash className="h-4 w-4" />
             </Button>
@@ -138,12 +158,27 @@ const DepartmentPage = () => {
           data={responseData.data}
           searchPlaceholder="Search departments..."
           actionButton={
-            <Button onClick={handleCreate} disabled={isCreating}>
-              {isCreating ? "Creating..." : "Add New Department"}
-            </Button>
+            <Button onClick={handleOpenCreate}>Add New Department</Button>
           }
         />
       </div>
+
+      {/* ✅ Create Modal */}
+      <DepartmentModal
+        open={openCreate}
+        onClose={() => setOpenCreate(false)}
+        collegeId={collegeId}
+        action="create"
+      />
+
+      {/* ✅ Update Modal with selected row */}
+      <DepartmentModal
+        open={openUpdate}
+        onClose={() => setOpenUpdate(false)}
+        collegeId={collegeId}
+        action="update"
+        initialData={selectedDepartment} // 👈 pass row data
+      />
     </div>
   );
 };

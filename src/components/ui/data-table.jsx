@@ -83,7 +83,7 @@ export function DataTable({
   return (
     <div className="w-full">
       {/* Search and Action Buttons */}
-      <div className="flex items-center justify-between py-4">
+      <div className="flex items-center justify-between py-2">
         <div className="flex items-center space-x-2">
           {showSearch && (
             <Input
@@ -110,7 +110,7 @@ export function DataTable({
 
       {/* Table */}
       <div className="border">
-        <div className=" overflow-auto" style={{ maxHeight: "56vh" }}>
+        <div className=" overflow-auto h-[calc(100vh-250px)]">
           <Table className="relative">
             <TableHeader className="sticky top-0 bg-background z-10">
               {table.getHeaderGroups().map((headerGroup) => (
@@ -161,6 +161,7 @@ export function DataTable({
                   <TableRow
                     key={row.id}
                     data-state={row.getIsSelected() && "selected"}
+                    className=" border-b"
                   >
                     {row.getVisibleCells().map((cell) => (
                       <TableCell key={cell.id}>
@@ -204,7 +205,7 @@ export function DataTable({
                 />
               </SelectTrigger>
               <SelectContent side="top">
-                {[5, 10, 15, 20, 25, 50].map((pageSize) => (
+                {[5, 6, 7, 8, 9, 10, 15, 25, 50].map((pageSize) => (
                   <SelectItem key={pageSize} value={`${pageSize}`}>
                     {pageSize}
                   </SelectItem>
