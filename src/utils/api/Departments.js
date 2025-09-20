@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import axiosClient from "../axios/axios"; // Assuming you have a configured axios client
+import { departmentAdminKeys } from "./DepartmentAdmin";
 
 const BASE_URL = "/department/college-admin";
 
@@ -140,6 +141,7 @@ export function useDeleteDepartment() {
       toast.success("Department deleted successfully");
       // Invalidate all department list queries to reflect the deletion.
       queryClient.invalidateQueries({ queryKey: departmentKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: departmentAdminKeys.lists() });
     },
     onError: (error) => {
       toast.error(

@@ -6,6 +6,7 @@ import { formatDate } from "@/utils/helper/Formatter";
 import { Pencil, Trash, UserPlus } from "lucide-react";
 import React, { useState } from "react";
 import { useSelector } from "react-redux";
+import { AdminModal } from "./AdminCreateModal";
 
 const AdminPage = () => {
   const { user } = useSelector((state) => state.user);
@@ -13,6 +14,7 @@ const AdminPage = () => {
   const [openUpdate, setOpenUpdate] = useState(false);
   const [selectedAdmin, setSelectedAdmin] = useState(null); // ✅ for update
   const collegeId = user?.collegeAdmin?.collegeId._id;
+  const collegeAdminName = user?.collegeAdmin?.name;
 
   // Getting Admins List Data ***********
 
@@ -106,13 +108,13 @@ const AdminPage = () => {
       id: "actions",
       header: "Actions",
       cell: ({ row }) => {
-        const department = row.original;
+        const admin = row.original;
 
         return (
           <div className="flex space-x-2">
             {/* ✅ Pass row data on edit */}
             <Button
-              onClick={() => handleOpenUpdate(department)}
+              onClick={() => handleOpenUpdate(admin)}
               variant="outline"
               size="sm"
               className="h-8 w-8 p-0"
@@ -159,6 +161,24 @@ const AdminPage = () => {
           }
         />
       </div>
+      {/* ✅ Create Modal */}
+      <AdminModal
+        open={openCreate}
+        onClose={() => setOpenCreate(false)}
+        collegeId={collegeId}
+        collegeAdminName={collegeAdminName}
+        action="create"
+      />
+
+      {/* ✅ Update Modal with selected row */}
+      <AdminModal
+        open={openUpdate}
+        onClose={() => setOpenUpdate(false)}
+        collegeId={collegeId}
+        action="update"
+        collegeAdminName={collegeAdminName}
+        initialData={selectedAdmin} // 👈 pass row data
+      />
     </div>
   );
 };

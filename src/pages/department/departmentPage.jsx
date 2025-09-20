@@ -73,10 +73,12 @@ const DepartmentPage = () => {
       enableSorting: false,
     },
     {
-      accessorKey: "adminId",
+      accessorKey: "adminId?.name",
       header: "Admin",
       cell: ({ row }) =>
-        row.original.adminId || <p className="text-red-600">Not Assigned</p>,
+        row.original.adminId?.name || (
+          <p className="text-red-600">Not Assigned</p>
+        ),
     },
     {
       accessorKey: "createdAt",
