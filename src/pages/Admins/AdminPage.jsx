@@ -1,7 +1,10 @@
 import Header from "@/components/global/Header";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
-import { useGetDepartmentAdminsByCollege } from "@/utils/api/DepartmentAdmin";
+import {
+  useDeleteAdmin,
+  useGetDepartmentAdminsByCollege,
+} from "@/utils/api/DepartmentAdmin";
 import { formatDate } from "@/utils/helper/Formatter";
 import { Pencil, Trash, UserPlus } from "lucide-react";
 import React, { useState } from "react";
@@ -25,6 +28,8 @@ const AdminPage = () => {
     error,
   } = useGetDepartmentAdminsByCollege(collegeId);
 
+  const { mutate: deleteAdmin, isPending: isDeleting } = useDeleteAdmin();
+
   if (isLoading) {
     return <div>Loading departments...</div>;
   }
@@ -47,7 +52,7 @@ const AdminPage = () => {
     if (
       window.confirm(`Are you sure you want to delete admin ${admin.name}?`)
     ) {
-      deleteDepartment(admin._id);
+      deleteAdmin({ collegeId, adminId: admin._id });
     }
   };
 
@@ -125,19 +130,11 @@ const AdminPage = () => {
             <Button
               variant="outline"
               size="sm"
-              className="h-8 w-8 p-0 text-yellow-600"
-            >
-              <UserPlus className="h-4 w-4" />
-            </Button>
-
-            <Button
-              variant="outline"
-              size="sm"
-              // className={`h-8 w-8 p-0 text-red-600 ${
-              //   isDeleting && "cursor-not-allowed"
-              // }`}
-              // disabled={isDeleting}
-              // onClick={() => handleDelete(department)}
+              className={`h-8 w-8 p-0 text-red-600 ${
+                isDeleting && "cursor-not-allowed"
+              }`}
+              disabled={isDeleting}
+              onClick={() => handleDelete(admin)}
             >
               <Trash className="h-4 w-4" />
             </Button>

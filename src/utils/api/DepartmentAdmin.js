@@ -64,6 +64,7 @@ export function useCreateAdmin() {
       queryClient.invalidateQueries({
         queryKey: departmentAdminKeys.listByCollege(variables.collegeId),
       });
+      queryClient.invalidateQueries({ queryKey: departmentKeys.lists() });
     },
     onError: (error) => {
       toast.error(error.response?.data?.message || "Failed to create admin");
@@ -74,6 +75,7 @@ export function useCreateAdmin() {
 /**
  * @description Hook for updating an existing department admin.
  */
+
 export function useUpdateAdmin() {
   const queryClient = useQueryClient();
 
@@ -100,58 +102,38 @@ export function useUpdateAdmin() {
 }
 
 /**
- * @description Hook for deleting a department admin with optimistic updates.
+ * @description Hook for deleting a department admin.
+ * This is a standard mutation without optimistic updates.
+ * The UI will refetch data only after a successful deletion.
  */
 export function useDeleteAdmin() {
   const queryClient = useQueryClient();
 
   return useMutation({
+    // The mutation function still needs both IDs to build the correct URL
     mutationFn: async ({ collegeId, adminId }) => {
       const response = await axiosClient.delete(
         `${BASE_URL}/${collegeId}/${adminId}`
       );
       return response.data;
     },
-    onMutate: async ({ collegeId, adminId }) => {
-      // Cancel any outgoing refetches to prevent overwriting our optimistic update.
-      await queryClient.cancelQueries({
-        queryKey: departmentAdminKeys.listByCollege(collegeId),
-      });
 
-      // Snapshot the previous value.
-      const previousAdmins = queryClient.getQueryData(
-        departmentAdminKeys.listByCollege(collegeId)
-      );
-
-      // Optimistically update to the new value by removing the item.
-      queryClient.setQueryData(
-        departmentAdminKeys.listByCollege(collegeId),
-        (oldData) =>
-          oldData ? oldData.filter((admin) => admin._id !== adminId) : []
-      );
-
-      // Return a context object with the snapshotted value.
-      return { previousAdmins, collegeId };
-    },
-    onError: (error, variables, context) => {
-      // If the mutation fails, roll back to the previous state.
-      if (context?.previousAdmins) {
-        queryClient.setQueryData(
-          departmentAdminKeys.listByCollege(context.collegeId),
-          context.previousAdmins
-        );
-      }
-      toast.error(error.response?.data?.message || "Failed to delete admin");
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: departmentKeys.lists() });
+    // On success, show a toast and invalidate queries to refetch the admin list
+    onSuccess: (_, variables) => {
       toast.success("Admin deleted successfully");
-    },
-    onSettled: (data, error, variables) => {
-      // Always refetch after error or success to ensure data consistency.
+
+      // Invalidate the specific list of admins for the college
       queryClient.invalidateQueries({
         queryKey: departmentAdminKeys.listByCollege(variables.collegeId),
       });
+
+      // Also invalidate general department data if needed
+      queryClient.invalidateQueries({ queryKey: departmentKeys.lists() });
+    },
+
+    // On error, just show an error toast
+    onError: (error) => {
+      toast.error(error.response?.data?.message || "Failed to delete admin");
     },
   });
 }

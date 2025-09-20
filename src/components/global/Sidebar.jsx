@@ -46,29 +46,19 @@ const menuItems = [
     link: "/admins",
   },
   {
-    title: "Faculty",
+    title: "Profile",
     icon: <ShieldUser size={20} />,
-    link: "/faculty",
+    link: "/profile",
   },
-  {
-    title: "Students",
-    icon: <Users size={20} />,
-    link: "/students",
-  },
-  {
-    title: "Attendance",
-    icon: <CreditCard size={20} />,
-    link: "/attendance",
-  },
-  {
-    title: "Settings",
-    icon: <Settings size={20} />,
-    subOptions: [
-      { title: "Account", link: "/settings/account" },
-      { title: "Security", link: "/settings/security" },
-      { title: "Appearance", link: "/settings/appearance" },
-    ],
-  },
+  // {
+  //   title: "Settings",
+  //   icon: <Settings size={20} />,
+  //   subOptions: [
+  //     { title: "Account", link: "/settings/account" },
+  //     { title: "Security", link: "/settings/security" },
+  //     { title: "Appearance", link: "/settings/appearance" },
+  //   ],
+  // },
 ];
 
 // --- Sub-Components for Readability ---

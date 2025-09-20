@@ -4,7 +4,7 @@ import { useSelector } from "react-redux";
 const Header = () => {
   const { user } = useSelector((state) => state.user);
   return (
-    <div className="h-16 border-b border-gray-200 shadow-sm p-3 flex justify-between items-center pl-5 pr-10">
+    <div className="sticky top-0 z-50 h-16 border-b border-gray-200 shadow-sm p-3 flex justify-between items-center pl-5 pr-10 bg-background">
       <div>
         <h2 className="text-xl font-bold">
           {user?.collegeAdmin?.collegeId?.name}

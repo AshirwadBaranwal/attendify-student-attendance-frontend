@@ -14,6 +14,7 @@ import SidebarLayout from "./pages/dashboard/sidebarLayout";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import DepartmentPage from "./pages/department/departmentPage";
 import AdminPage from "./pages/Admins/AdminPage";
+import ProfilePage from "./pages/profile/ProfilePage";
 
 const queryClient = new QueryClient();
 
@@ -43,6 +44,10 @@ const router = createBrowserRouter([
               {
                 path: "/admins",
                 element: <AdminPage />,
+              },
+              {
+                path: "/profile",
+                element: <ProfilePage />,
               },
             ],
           },

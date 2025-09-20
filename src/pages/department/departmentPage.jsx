@@ -119,14 +119,6 @@ const DepartmentPage = () => {
             <Button
               variant="outline"
               size="sm"
-              className="h-8 w-8 p-0 text-yellow-600"
-            >
-              <UserMinus className="h-4 w-4" />
-            </Button>
-
-            <Button
-              variant="outline"
-              size="sm"
               className={`h-8 w-8 p-0 text-red-600 ${
                 isDeleting && "cursor-not-allowed"
               }`}

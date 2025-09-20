@@ -270,10 +270,7 @@ const userSlice = createSlice({
       // Logout case
       .addCase(logout.fulfilled, (state) => {
         // After logout, reset the state but ensure loading is FALSE.
-        return {
-          ...initialState,
-          loading: false,
-        };
+        state.user = null;
       });
   },
 });
