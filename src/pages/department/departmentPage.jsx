@@ -9,6 +9,7 @@ import { DataTable } from "@/components/ui/data-table";
 import { Pencil, Trash, UserMinus } from "lucide-react";
 import Header from "@/components/global/Header";
 import { DepartmentModal } from "./departmentModal";
+import { formatDate } from "@/utils/helper/Formatter";
 
 const DepartmentPage = () => {
   const { user } = useSelector((state) => state.user);
@@ -50,16 +51,6 @@ const DepartmentPage = () => {
     }
   };
 
-  // Format date for display
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  };
-
   const columns = [
     {
       accessorKey: "slNo",
@@ -73,7 +64,7 @@ const DepartmentPage = () => {
       cell: ({ row }) => row.original.name,
     },
     {
-      accessorKey: "duration",
+      id: "duration",
       header: "Duration",
       cell: ({ row }) =>
         (row.original.duration || "N/A") +
