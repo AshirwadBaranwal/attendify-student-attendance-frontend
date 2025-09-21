@@ -1,9 +1,11 @@
 import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import ProfileDetailsTab from "./tabs/ProfileDetailsTab";
-import CollegeDetailsTab from "./tabs/CollegeDetailsTab";
+// import ProfileDetailsTab from "./tabs/ProfileDetailsTab";
+// import CollegeDetailsTab from "./tabs/CollegeDetailsTab";
 import SecurityTab from "./tabs/SecurityTab";
 import DangerZoneTab from "./tabs/DangerZoneTab";
+import ProfileDetailsTab from "./Tabs/ProfileDetailsTab";
+import CollegeDetailsTab from "./Tabs/CollegeDetailsTab";
 
 const ProfileTabs = ({ user }) => {
   return (
