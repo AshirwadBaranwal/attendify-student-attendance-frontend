@@ -1,10 +1,6 @@
-import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import {
-  Users,
-  CreditCard,
-  Settings,
   LayoutDashboard,
   School,
   ShieldUser,
