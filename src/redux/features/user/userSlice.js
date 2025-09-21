@@ -125,16 +125,28 @@ export const resendOTP = createAsyncThunk(
   }
 );
 
-export const updateUserProfile = createAsyncThunk(
-  "user/updateProfile",
-  async (userData, thunkAPI) => {
+export const updateProfilePicture = createAsyncThunk(
+  "user/updateProfilePicture",
+  async ({ imageFile, previewUrl }, thunkAPI) => {
     try {
-      const res = await axiosClient.put("/user/update", userData);
-      toast.success(res?.data?.message || "Profile updated successfully");
-      return res.data.user;
+      const formData = new FormData();
+      formData.append("profilePicture", imageFile);
+
+      const res = await axiosClient.patch(
+        "/profile/college-admin/profile-picture",
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
+
+      toast.success(res?.data?.message || "Profile picture updated!");
+      // The API should return the updated user object
+      return res.data.data;
     } catch (err) {
+      console.error("Error updating profile picture:", err);
       const errorMessage =
-        err?.response?.data?.message || "Failed to update profile";
+        err?.response?.data?.message || "Failed to update profile picture";
       toast.error(errorMessage);
       return thunkAPI.rejectWithValue(
         err?.response?.data || { message: errorMessage }
@@ -185,6 +197,8 @@ const userSlice = createSlice({
     registering: false,
     verifying: false,
     loggingIn: false,
+    updatingProfilePicture: false, // New loading state for profile picture
+    originalProfilePicture: null, // To store the old URL for optimistic rollback
     error: null,
     registeredEmail: null,
     unverifiedEmail: null,
@@ -261,12 +275,41 @@ const userSlice = createSlice({
         state.verifying = false;
         state.error = action.payload;
       })
-
-      // Update profile case
-      .addCase(updateUserProfile.fulfilled, (state, action) => {
-        state.user = action.payload;
+      // Update Profile Picture cases (with Optimistic Update)
+      .addCase(updateProfilePicture.pending, (state, action) => {
+        state.updatingProfilePicture = true;
+        state.error = null;
+        // Optimistic Update:
+        // 1. Save the current profile picture URL in case we need to revert.
+        state.originalProfilePicture = state.user.collegeAdmin.profilePicture;
+        // 2. Immediately update the UI with the local preview URL.
+        // The previewUrl is passed from the component when dispatching the action.
+        state.user.collegeAdmin.profilePicture = action.meta.arg.previewUrl;
       })
+      .addCase(updateProfilePicture.fulfilled, (state, action) => {
+        state.updatingProfilePicture = false;
 
+        // ✅ MODIFICATION HERE
+        // Instead of replacing the whole user, we just update the specific property.
+        // The action.payload is now { profilePicture: "new-url.jpg" } from your backend.
+        if (state.user && state.user.collegeAdmin) {
+          state.user.collegeAdmin.profilePicture =
+            action.payload.profilePicture;
+        }
+
+        // Clear the stored original URL as the update is permanent.
+        state.originalProfilePicture = null;
+      })
+      .addCase(updateProfilePicture.rejected, (state, action) => {
+        state.updatingProfilePicture = false;
+        state.error = action.payload;
+        // Rollback: The API call failed. Revert to the original profile picture.
+        if (state.user && state.originalProfilePicture) {
+          state.user.collegeAdmin.profilePicture = state.originalProfilePicture;
+        }
+        // Clear the stored original URL.
+        state.originalProfilePicture = null;
+      })
       // Logout case
       .addCase(logout.fulfilled, (state) => {
         // After logout, reset the state but ensure loading is FALSE.
