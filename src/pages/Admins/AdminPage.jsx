@@ -10,6 +10,7 @@ import { Pencil, Trash, UserPlus } from "lucide-react";
 import React, { useState } from "react";
 import { useSelector } from "react-redux";
 import { AdminModal } from "./AdminCreateModal";
+import TableSkeleton from "@/components/global/TableLoading";
 
 const AdminPage = () => {
   const { user } = useSelector((state) => state.user);
@@ -30,15 +31,14 @@ const AdminPage = () => {
 
   const { mutate: deleteAdmin, isPending: isDeleting } = useDeleteAdmin();
 
-  if (isLoading) {
-    return <div>Loading departments...</div>;
-  }
+  // if (isLoading) {
+  //   return <div>Loading departments...</div>;
+  // }
 
   if (isError) {
     return <div>An error occurred: {error.message}</div>;
   }
 
-  console.log(responseData);
   const handleOpenCreate = () => {
     setOpenCreate(true);
   };
@@ -144,19 +144,33 @@ const AdminPage = () => {
     },
   ];
 
+  const ColumnsArray = [
+    "Sl No.",
+    "Admin Information",
+    "Department",
+    "Status",
+    "Admin Phone",
+    "Created At",
+    "Actions",
+  ];
+
   return (
     <div>
       <Header />
       <div className="container mx-auto px-5 ">
         <h1 className="text-2xl font-bold  py-3">Admins Management</h1>
-        <DataTable
-          columns={columns}
-          data={responseData.data}
-          searchPlaceholder="Search Admins..."
-          actionButton={
-            <Button onClick={handleOpenCreate}>Add New Admin</Button>
-          }
-        />
+        {!responseData?.data ? (
+          <TableSkeleton ColumnsArray={ColumnsArray} />
+        ) : (
+          <DataTable
+            columns={columns}
+            data={responseData?.data}
+            searchPlaceholder="Search Admins..."
+            actionButton={
+              <Button onClick={handleOpenCreate}>Add New Admin</Button>
+            }
+          />
+        )}
       </div>
       {/* ✅ Create Modal */}
       <AdminModal

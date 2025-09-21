@@ -10,6 +10,7 @@ import { Pencil, Trash, UserMinus } from "lucide-react";
 import Header from "@/components/global/Header";
 import { DepartmentModal } from "./departmentModal";
 import { formatDate } from "@/utils/helper/Formatter";
+import TableSkeleton from "../../components/global/TableLoading";
 
 const DepartmentPage = () => {
   const { user } = useSelector((state) => state.user);
@@ -28,9 +29,9 @@ const DepartmentPage = () => {
   const { mutate: deleteDepartment, isPending: isDeleting } =
     useDeleteDepartment();
 
-  if (isLoading) {
-    return <div>Loading departments...</div>;
-  }
+  // if (isLoading) {
+  //   return <div>Loading departments...</div>;
+  // }
 
   if (isError) {
     return <div>An error occurred: {error.message}</div>;
@@ -133,19 +134,34 @@ const DepartmentPage = () => {
     },
   ];
 
+  const ColumnsArray = [
+    "Sl No.",
+    "Department Name",
+    "Duration",
+    "Admin",
+    "Created At",
+    "HOD Name",
+    "HOD Phone",
+    "Actions",
+  ];
+
   return (
     <div>
       <Header />
       <div className="container mx-auto px-5 ">
         <h1 className="text-2xl font-bold  py-3">Department Management</h1>
-        <DataTable
-          columns={columns}
-          data={responseData.data}
-          searchPlaceholder="Search departments..."
-          actionButton={
-            <Button onClick={handleOpenCreate}>Add New Department</Button>
-          }
-        />
+        {!responseData?.data ? (
+          <TableSkeleton ColumnsArray={ColumnsArray} />
+        ) : (
+          <DataTable
+            columns={columns}
+            data={responseData.data}
+            searchPlaceholder="Search departments..."
+            actionButton={
+              <Button onClick={handleOpenCreate}>Add New Department</Button>
+            }
+          />
+        )}
       </div>
 
       {/* ✅ Create Modal */}

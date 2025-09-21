@@ -1,3 +1,4 @@
+import StylishDashButton from "@/components/common/StylishDashButton";
 import React from "react";
 import { useSelector } from "react-redux";
 
@@ -14,7 +15,7 @@ const WelcomeCard = () => {
       {/* Gradient overlay for depth */}
       <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/5 to-black/10"></div>
 
-      {/* Content */}
+      {/* Content */} 
       <div className="relative z-10">
         {/* Greeting */}
         <div className="mb-6">
@@ -28,9 +29,7 @@ const WelcomeCard = () => {
         </div>
 
         {/* Action button */}
-        <button className="bg-white/20 backdrop-blur-sm text-white px-6 py-3 rounded-xl font-semibold hover:bg-white/30 transition-all duration-300 border border-white/30 shadow-lg">
-          Start Now
-        </button>
+        <StylishDashButton />
       </div>
 
       {/* Character illustration placeholder */}

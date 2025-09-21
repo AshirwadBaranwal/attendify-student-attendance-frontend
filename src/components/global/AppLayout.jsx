@@ -20,7 +20,11 @@ const AppLayout = () => {
     return (
       <div className="flex h-screen w-full items-center justify-center">
         {/* Replace with your preferred Spinner/Loader component */}
-        <p>Loading application...</p>
+        <img
+          src="/logo.png"
+          alt="Attendify Loading..."
+          className="size-24 animate-pulse "
+        />
       </div>
     );
   }
