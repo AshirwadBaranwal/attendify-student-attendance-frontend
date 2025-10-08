@@ -56,7 +56,7 @@ const AddCollegePage = () => {
   const onSubmit = async (data) => {
     setIsSubmitting(true);
     try {
-      await axiosClient.post("/college/college-admin", data);
+      await axiosClient.post("/college", data);
       toast.success("College created successfully");
 
       // Refresh user data to get updated college assignment

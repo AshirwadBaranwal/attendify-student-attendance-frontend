@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import axiosClient from "../axios/axios"; // Assuming you have a configured axios client
 import { departmentAdminKeys } from "./DepartmentAdmin";
 
-const BASE_URL = "/department/college-admin";
+const BASE_URL = "/department";
 
 // --- Query Keys ---
 // Centralized for better cache management and invalidation.

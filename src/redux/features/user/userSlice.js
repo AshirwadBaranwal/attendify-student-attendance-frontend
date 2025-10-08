@@ -22,6 +22,27 @@ export const fetchUser = createAsyncThunk(
   }
 );
 
+export const changePassword = createAsyncThunk(
+  "user/changePassword",
+  async (credentials, thunkAPI) => {
+    try {
+      const res = await axiosClient.post(
+        "/auth/college-admin/change-password",
+        credentials
+      );
+      toast.success(res?.data?.message || "Password changed successfully!");
+    } catch (err) {
+      console.error("Error changing password:", err);
+      const errorMessage =
+        err?.response?.data?.message || "Failed to change password";
+      toast.error(errorMessage);
+      return thunkAPI.rejectWithValue(
+        err?.response?.data || { message: "Change password failed" }
+      );
+    }
+  }
+);
+
 export const login = createAsyncThunk(
   "user/login",
   async (credentials, thunkAPI) => {
@@ -133,7 +154,7 @@ export const updateProfilePicture = createAsyncThunk(
       formData.append("profilePicture", imageFile);
 
       const res = await axiosClient.patch(
-        "/profile/college-admin/profile-picture",
+        "/college-admin/profile-picture",
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },
@@ -202,6 +223,8 @@ const userSlice = createSlice({
     error: null,
     registeredEmail: null,
     unverifiedEmail: null,
+    changingPassword: false,
+    changePasswordError: null,
   },
   reducers: {
     setUser: (state, action) => {
@@ -314,6 +337,19 @@ const userSlice = createSlice({
       .addCase(logout.fulfilled, (state) => {
         // After logout, reset the state but ensure loading is FALSE.
         state.user = null;
+      })
+      // change password cases can be added here similarly
+      .addCase(changePassword.pending, (state) => {
+        state.changingPassword = true;
+        state.changePasswordError = null;
+      })
+      .addCase(changePassword.fulfilled, (state, action) => {
+        state.changingPassword = false;
+        // Handle successful password change if needed
+      })
+      .addCase(changePassword.rejected, (state, action) => {
+        state.changingPassword = false;
+        state.changePasswordError = action.payload;
       });
   },
 });

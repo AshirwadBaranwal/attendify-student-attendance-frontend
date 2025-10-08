@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -19,30 +19,95 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { User } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { useUpdateCollegeAdminProfile } from "@/utils/api/CollegeAdminProfile";
 
 const EditProfileModal = ({ children, user }) => {
-  const [name, setName] = useState(user?.collegeAdmin?.name);
-  const [phone, setPhone] = useState(user?.collegeAdmin?.phone);
-  // Add mutation logic here to save changes
+  // Local state for form fields
+  const [name, setName] = useState(user?.collegeAdmin?.name || "");
+  const [phone, setPhone] = useState(user?.collegeAdmin?.phone || "");
+  const [isOpen, setIsOpen] = useState(false); // State to control dialog visibility
+
+  // Initialize the mutation hook
+  const { mutate, isPending } = useUpdateCollegeAdminProfile();
+
+  // Reset local state when the dialog is opened/closed
+  useEffect(() => {
+    if (isOpen) {
+      setName(user?.collegeAdmin?.name || "");
+      setPhone(user?.collegeAdmin?.phone || "");
+    }
+  }, [isOpen, user]);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    // Data to be sent to the backend
+    const updatedData = { name, phone };
+
+    // Call the mutation function
+    mutate(updatedData, {
+      onSuccess: () => {
+        // Close the modal upon successful update
+        setIsOpen(false);
+      },
+      // onError is handled inside the hook, no need to duplicate here unless needed
+    });
+  };
+
   return (
-    <Dialog>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent>
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Edit Profile</DialogTitle>
           <DialogDescription>
-            Make changes to your personal information here.
+            Make changes to your personal information here. Click save when
+            you're done.
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 py-4">{/* Form fields... */}</div>
-        <DialogFooter>
-          <DialogClose asChild>
-            <Button type="button" variant="secondary">
-              Cancel
+
+        {/* Form for submission */}
+        <form onSubmit={handleSubmit}>
+          <div className="grid gap-4 py-4">
+            {/* Name Field */}
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="name" className="text-right">
+                Full Name
+              </Label>
+              <Input
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="col-span-3"
+                required
+              />
+            </div>
+            {/* Phone Field */}
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="phone" className="text-right">
+                Phone
+              </Label>
+              <Input
+                id="phone"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                className="col-span-3"
+                type="tel" // Use type tel for phone number input
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button type="button" variant="secondary" disabled={isPending}>
+                Cancel
+              </Button>
+            </DialogClose>
+            <Button type="submit" disabled={isPending}>
+              {isPending ? "Saving..." : "Save changes"}
             </Button>
-          </DialogClose>
-          <Button type="submit">Save changes</Button>
-        </DialogFooter>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );
