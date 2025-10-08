@@ -21,7 +21,6 @@ import {
 } from "@/components/ui/select";
 import { useGetDepartmentsByCollege } from "@/utils/api/Departments";
 import { useCreateAdmin, useUpdateAdmin } from "@/utils/api/DepartmentAdmin";
-import { Check } from "lucide-react";
 
 export function AdminModal({
   open,

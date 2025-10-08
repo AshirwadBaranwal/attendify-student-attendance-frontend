@@ -29,10 +29,6 @@ const DepartmentPage = () => {
   const { mutate: deleteDepartment, isPending: isDeleting } =
     useDeleteDepartment();
 
-  // if (isLoading) {
-  //   return <div>Loading departments...</div>;
-  // }
-
   if (isError) {
     return <div>An error occurred: {error.message}</div>;
   }
@@ -42,7 +38,7 @@ const DepartmentPage = () => {
   };
 
   const handleOpenUpdate = (department) => {
-    setSelectedDepartment(department); // ✅ save row data
+    setSelectedDepartment(department);
     setOpenUpdate(true);
   };
 
@@ -54,7 +50,7 @@ const DepartmentPage = () => {
 
   const columns = [
     {
-      accessorKey: "slNo",
+      id: "slNo",
       header: "Sl No.",
       cell: ({ row }) => row.index + 1,
       enableSorting: false,

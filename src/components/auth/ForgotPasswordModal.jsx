@@ -1,4 +1,3 @@
-// ForgotPasswordModal.jsx
 import React, { useState, useCallback, memo } from "react";
 import { Button } from "../ui/button";
 import { Loader2, Mail } from "lucide-react";
@@ -50,9 +49,9 @@ const ForgotPasswordModal = ({ isOpen, onClose }) => {
       setShowOTPModal(true);
     } catch (error) {
       toast.error(
-        error.response?.data?.message || 
-        error.message || 
-        "Failed to send reset email"
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to send reset email"
       );
     } finally {
       setIsLoading(false);
@@ -79,9 +78,9 @@ const ForgotPasswordModal = ({ isOpen, onClose }) => {
       setShowSetPasswordModal(true);
     } catch (error) {
       toast.error(
-        error.response?.data?.message || 
-        error.message || 
-        "Invalid or expired OTP"
+        error.response?.data?.message ||
+          error.message ||
+          "Invalid or expired OTP"
       );
     } finally {
       setIsVerifyingOtp(false);
@@ -101,9 +100,7 @@ const ForgotPasswordModal = ({ isOpen, onClose }) => {
       toast.success(response.data.message || "New OTP sent to your email");
     } catch (error) {
       toast.error(
-        error.response?.data?.message || 
-        error.message || 
-        "Failed to resend OTP"
+        error.response?.data?.message || error.message || "Failed to resend OTP"
       );
     } finally {
       setIsLoading(false);

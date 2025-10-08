@@ -34,7 +34,7 @@ const ProfileHeader = ({ user, bannerImage }) => {
   return (
     <div className="relative">
       <div
-        className="w-full h-80 bg-cover bg-center rounded-t-lg"
+        className="w-full h-80 bg-cover bg-center rounded-t-lg bg-gray-100 "
         style={{ backgroundImage: `url(${bannerImage})` }}
       />
       <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2">
