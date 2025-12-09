@@ -19,7 +19,7 @@ const passwordSchema = z
     path: ["confirmPassword"],
   });
 
-const SetPasswordModal = ({ isOpen, onClose, email, onSuccess }) => {
+const SetPasswordModal = ({ isOpen, onClose, resetToken, onSuccess }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -54,7 +54,7 @@ const SetPasswordModal = ({ isOpen, onClose, email, onSuccess }) => {
         const response = await axiosClient.post(
           "/auth/college-admin/reset-forgot-password",
           {
-            email,
+            resetToken,
             newPassword: data.newPassword,
           }
         );
@@ -66,15 +66,15 @@ const SetPasswordModal = ({ isOpen, onClose, email, onSuccess }) => {
         }
       } catch (error) {
         toast.error(
-          error.response?.data?.message || 
-          error.message || 
-          "Failed to reset password"
+          error.response?.data?.message ||
+            error.message ||
+            "Failed to reset password"
         );
       } finally {
         setIsLoading(false);
       }
     },
-    [email, onSuccess, reset]
+    [resetToken, onSuccess, reset]
   );
 
   // Don't render if not open

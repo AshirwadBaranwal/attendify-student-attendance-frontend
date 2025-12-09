@@ -13,7 +13,7 @@ const contentMap = {
   login: {
     title: "🔐 Verification Required",
     description:
-      "Your account is not verified. Please enter the OTP sent to your email to log in.",
+      "Your email is not verified. Resend the verification OTP and enter it below.",
   },
   forgotPassword: {
     title: "🔑 Reset Your Password",

@@ -19,6 +19,7 @@ const ForgotPasswordModal = ({ isOpen, onClose }) => {
   const [email, setEmail] = useState("");
   const [showOTPModal, setShowOTPModal] = useState(false);
   const [showSetPasswordModal, setShowSetPasswordModal] = useState(false);
+  const [resetToken, setResetToken] = useState("");
   const [otp, setOtp] = useState("");
   const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
 
@@ -74,6 +75,7 @@ const ForgotPasswordModal = ({ isOpen, onClose }) => {
       );
 
       toast.success(response.data.message || "OTP verified successfully");
+      setResetToken(response?.data?.data?.resetToken || "");
       setShowOTPModal(false);
       setShowSetPasswordModal(true);
     } catch (error) {
@@ -199,7 +201,7 @@ const ForgotPasswordModal = ({ isOpen, onClose }) => {
         <SetPasswordModal
           isOpen={showSetPasswordModal}
           onClose={() => setShowSetPasswordModal(false)}
-          email={email}
+          resetToken={resetToken}
           onSuccess={handlePasswordResetSuccess}
         />
       )}
