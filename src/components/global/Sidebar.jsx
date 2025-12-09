@@ -24,7 +24,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 // --- Menu Configurations ---
-// No changes needed here, the structure is fine.
 const menuItems = [
   {
     title: "Dashboard",
@@ -46,15 +45,6 @@ const menuItems = [
     icon: <ShieldUser size={20} />,
     link: "/profile",
   },
-  // {
-  //   title: "Settings",
-  //   icon: <Settings size={20} />,
-  //   subOptions: [
-  //     { title: "Account", link: "/settings/account" },
-  //     { title: "Security", link: "/settings/security" },
-  //     { title: "Appearance", link: "/settings/appearance" },
-  //   ],
-  // },
 ];
 
 // --- Sub-Components for Readability ---
@@ -64,11 +54,12 @@ const NavItem = ({ item, isActive }) => (
     <TooltipTrigger asChild>
       <Link
         to={item.link}
+        // UPDATED: Using sidebar-specific theme variables
         className={`flex items-center justify-center w-12 h-12 rounded-lg transition-colors
           ${
             isActive
-              ? "bg-primary text-white"
-              : "text-gray-400 hover:bg-gray-700 hover:text-white"
+              ? "bg-sidebar-primary text-sidebar-primary-foreground"
+              : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
           }`}
       >
         {item.icon}
@@ -91,11 +82,12 @@ const SubMenu = ({ item, activePath }) => {
         <TooltipTrigger asChild>
           <DropdownMenuTrigger asChild>
             <button
+              // UPDATED: Using sidebar-specific theme variables
               className={`flex items-center justify-center w-12 h-12 rounded-lg transition-colors
                 ${
                   isSubMenuActive
-                    ? "bg-primary text-white"
-                    : "text-gray-400 hover:bg-gray-700 hover:text-white"
+                    ? "bg-sidebar-primary text-sidebar-primary-foreground"
+                    : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                 }`}
             >
               {item.icon}
@@ -106,6 +98,11 @@ const SubMenu = ({ item, activePath }) => {
           <p>{item.title}</p>
         </TooltipContent>
       </Tooltip>
+
+      {/* Note: DropdownMenuContent usually uses global 'popover' colors.
+         If you want it to match the sidebar specifically, you can add
+         className="bg-sidebar border-sidebar-border text-sidebar-foreground"
+      */}
       <DropdownMenuContent side="right" className="ml-2">
         {item.subOptions.map((subItem) => (
           <Link to={subItem.link} key={subItem.title}>
@@ -129,7 +126,6 @@ const Sidebar = () => {
   const handleLogout = async () => {
     try {
       await dispatch(logout()).unwrap();
-      // Use navigate for client-side routing instead of a full page reload
       navigate("/login");
     } catch (error) {
       console.error("Failed to log out:", error);
@@ -137,18 +133,22 @@ const Sidebar = () => {
   };
 
   return (
-    // Use TooltipProvider at the root of the component
     <TooltipProvider delayDuration={0}>
-      <aside className="h-screen w-20 bg-[#192030] text-white flex flex-col items-center shrink-0 select-none">
-        {/* Header */}
-        <div className="flex items-center justify-center h-16 w-full border-b border-gray-700 shrink-0">
+      {/* UPDATED CONTAINER:
+        - bg-sidebar: Sets the background color based on theme
+        - text-sidebar-foreground: Sets the text color
+        - border-sidebar-border: Sets the border color
+      */}
+      <aside className="h-screen w-20 bg-sidebar text-sidebar-foreground border-r border-sidebar-border flex flex-col items-center shrink-0 select-none">
+        {/* Header - UPDATED border color */}
+        <div className="flex items-center justify-center h-16 w-full border-b border-sidebar-border shrink-0">
+          {/* Ensure your logo SVG handles 'currentColor' or looks good on the sidebar bg */}
           <img src="/logo.png" alt="logo" className="w-8 h-8" />
         </div>
 
         {/* Navigation Menu */}
         <nav className="flex-1 p-4 space-y-2">
           {menuItems.map((item) => {
-            // Updated isActive logic for exact match on dashboard
             const isActive =
               item.link === "/"
                 ? location.pathname === "/"
@@ -166,11 +166,17 @@ const Sidebar = () => {
           })}
         </nav>
 
-        {/* Footer */}
-        <div className="p-4 mt-auto border-t border-gray-700 shrink-0">
+        {/* Footer - UPDATED border color */}
+        <div className="p-4 mt-auto border-t border-sidebar-border shrink-0">
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="destructive" size="icon" onClick={handleLogout}>
+              <Button
+                variant="destructive"
+                size="icon"
+                onClick={handleLogout}
+                // Optional: If you want the logout button to blend more until hovered:
+                // className="bg-transparent text-sidebar-foreground hover:bg-destructive hover:text-destructive-foreground border border-sidebar-border"
+              >
                 <LogOut size={18} />
               </Button>
             </TooltipTrigger>

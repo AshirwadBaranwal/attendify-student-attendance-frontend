@@ -15,7 +15,7 @@ const WelcomeCard = () => {
       {/* Gradient overlay for depth */}
       <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/5 to-black/10"></div>
 
-      {/* Content */} 
+      {/* Content */}
       <div className="relative z-10">
         {/* Greeting */}
         <div className="mb-6">

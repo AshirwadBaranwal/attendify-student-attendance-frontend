@@ -98,7 +98,7 @@ export function DataTable({
               variant="outline"
               size="sm"
               onClick={clearAllFilters}
-              className="h-8 px-2 lg:px-3"
+              className="h-8 px-2 lg:px-3 text-muted-foreground hover:text-foreground"
             >
               <X className="mr-2 h-4 w-4" />
               Clear filters
@@ -108,19 +108,26 @@ export function DataTable({
         {actionButton}
       </div>
 
-      {/* Table */}
-      <div className="border">
-        <div className=" overflow-auto h-[calc(100vh-250px)]">
+      {/* Table Container - UPDATED: bg-card, border-border */}
+      <div className="rounded-md border border-border bg-card overflow-hidden">
+        <div className="overflow-auto h-[calc(100vh-250px)]">
           <Table className="relative">
-            <TableHeader className="sticky top-0 bg-background z-10">
+            {/* Header - UPDATED: bg-card ensures sticky header isn't transparent */}
+            <TableHeader className="sticky top-0 bg-card z-10 ">
               {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
+                <TableRow
+                  key={headerGroup.id}
+                  className="border-border hover:bg-transparent"
+                >
                   {headerGroup.headers.map((header) => {
                     const canSort = header.column.getCanSort();
                     const sortDirection = header.column.getIsSorted();
 
                     return (
-                      <TableHead key={header.id}>
+                      <TableHead
+                        key={header.id}
+                        className="text-muted-foreground"
+                      >
                         {header.isPlaceholder ? null : (
                           <div className="flex items-center space-x-2">
                             <span>
@@ -133,7 +140,7 @@ export function DataTable({
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="h-8 w-8 p-0"
+                                className="h-8 w-8 p-0 hover:bg-muted hover:text-foreground"
                                 onClick={header.column.getToggleSortingHandler()}
                               >
                                 {sortDirection === "asc" ? (
@@ -161,10 +168,11 @@ export function DataTable({
                   <TableRow
                     key={row.id}
                     data-state={row.getIsSelected() && "selected"}
-                    className=" border-b"
+                    // UPDATED: border-border
+                    className="border-b border-border hover:bg-muted/50 data-[state=selected]:bg-muted"
                   >
                     {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
+                      <TableCell key={cell.id} className="text-foreground">
                         {flexRender(
                           cell.column.columnDef.cell,
                           cell.getContext()
@@ -177,7 +185,7 @@ export function DataTable({
                 <TableRow>
                   <TableCell
                     colSpan={columns.length}
-                    className="h-24 text-center"
+                    className="h-24 text-center text-muted-foreground"
                   >
                     No results.
                   </TableCell>
@@ -192,7 +200,7 @@ export function DataTable({
       <div className="flex items-center justify-between px-2 py-4">
         <div className="flex items-center space-x-6 lg:space-x-8">
           <div className="flex items-center space-x-2">
-            <p className="text-sm font-medium">Rows per page</p>
+            <p className="text-sm font-medium text-foreground">Rows per page</p>
             <Select
               value={`${table.getState().pagination.pageSize}`}
               onValueChange={(value) => {
@@ -213,7 +221,7 @@ export function DataTable({
               </SelectContent>
             </Select>
           </div>
-          <div className="flex w-[100px] items-center justify-center text-sm font-medium">
+          <div className="flex w-[100px] items-center justify-center text-sm font-medium text-foreground">
             Page {table.getState().pagination.pageIndex + 1} of{" "}
             {table.getPageCount()}
           </div>
@@ -222,16 +230,24 @@ export function DataTable({
         <div className="flex items-center space-x-2">
           <div className="flex-1 text-sm text-muted-foreground">
             Showing{" "}
-            {table.getState().pagination.pageIndex *
-              table.getState().pagination.pageSize +
-              1}{" "}
+            <span className="text-foreground font-medium">
+              {table.getState().pagination.pageIndex *
+                table.getState().pagination.pageSize +
+                1}
+            </span>{" "}
             to{" "}
-            {Math.min(
-              (table.getState().pagination.pageIndex + 1) *
-                table.getState().pagination.pageSize,
-              table.getFilteredRowModel().rows.length
-            )}{" "}
-            of {table.getFilteredRowModel().rows.length} entries
+            <span className="text-foreground font-medium">
+              {Math.min(
+                (table.getState().pagination.pageIndex + 1) *
+                  table.getState().pagination.pageSize,
+                table.getFilteredRowModel().rows.length
+              )}
+            </span>{" "}
+            of{" "}
+            <span className="text-foreground font-medium">
+              {table.getFilteredRowModel().rows.length}
+            </span>{" "}
+            entries
           </div>
 
           <div className="flex items-center space-x-2">
