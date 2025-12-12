@@ -2,46 +2,25 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axiosClient from "@/utils/axios/axios";
 import { toast } from "sonner";
 
-export const fetchUser = createAsyncThunk(
-  "user/fetchUser",
-  async (_, thunkAPI) => {
-    try {
-      const res = await axiosClient.get(
-        "/auth/college-admin/get-college-admin"
-      );
-      return res.data.data; // Assuming it's nested like the login
-    } catch (err) {
-      console.error("Error fetching user data:", err);
-      const errorMessage =
-        err?.response?.data?.message || "Failed to fetch user data";
-      toast.error(errorMessage);
-      return thunkAPI.rejectWithValue(
-        err?.response?.data || { message: "Fetch user failed" }
-      );
-    }
-  }
-);
+// ============================================================================
+// UTILITIES
+// ============================================================================
 
-export const changePassword = createAsyncThunk(
-  "user/changePassword",
-  async (credentials, thunkAPI) => {
-    try {
-      const res = await axiosClient.post(
-        "/auth/college-admin/change-password",
-        credentials
-      );
-      toast.success(res?.data?.message || "Password changed successfully!");
-    } catch (err) {
-      console.error("Error changing password:", err);
-      const errorMessage =
-        err?.response?.data?.message || "Failed to change password";
-      toast.error(errorMessage);
-      return thunkAPI.rejectWithValue(
-        err?.response?.data || { message: "Change password failed" }
-      );
-    }
-  }
-);
+/**
+ * Standardized error handler for Thunks to reduce boilerplate.
+ */
+const handleError = (err, defaultMessage, thunkAPI) => {
+  console.error(`Error: ${defaultMessage}`, err);
+  const errorMessage = err?.response?.data?.message || defaultMessage;
+  toast.error(errorMessage);
+  return thunkAPI.rejectWithValue(
+    err?.response?.data || { message: errorMessage }
+  );
+};
+
+// ============================================================================
+// THUNKS: AUTHENTICATION (Login, Register, Logout, OTP)
+// ============================================================================
 
 export const login = createAsyncThunk(
   "user/login",
@@ -54,9 +33,8 @@ export const login = createAsyncThunk(
       toast.success(res?.data?.message || "Login successful!");
       return res.data;
     } catch (err) {
-      // Check if the error is due to unverified user
+      // Specific logic for unverified users
       if (err?.response?.data?.code === "EMAIL_NOT_VERIFIED") {
-        // Set unverified email directly without needing restart verification
         return thunkAPI.rejectWithValue({
           unverified: true,
           email: credentials.email,
@@ -65,12 +43,7 @@ export const login = createAsyncThunk(
             "Account not verified. Please verify your email.",
         });
       }
-
-      const errorMessage = err?.response?.data?.message || "Login failed";
-      toast.error(errorMessage);
-      return thunkAPI.rejectWithValue(
-        err?.response?.data || { message: errorMessage }
-      );
+      return handleError(err, "Login failed", thunkAPI);
     }
   }
 );
@@ -87,18 +60,22 @@ export const register = createAsyncThunk(
         res?.data?.message ||
           "Registration successful! Please verify your email."
       );
-      // Ensure we return an object with email property
       return { email: userData.email, ...res.data };
     } catch (err) {
-      const errorMessage =
-        err?.response?.data?.message || "Registration failed";
-      toast.error(errorMessage);
-      return thunkAPI.rejectWithValue(
-        err?.response?.data || { message: errorMessage }
-      );
+      return handleError(err, "Registration failed", thunkAPI);
     }
   }
 );
+
+export const logout = createAsyncThunk("user/logout", async (_, thunkAPI) => {
+  try {
+    const res = await axiosClient.get("/auth/college-admin/logout");
+    toast.success(res?.data?.message || "Logged out successfully");
+    return res.data;
+  } catch (err) {
+    return handleError(err, "Logout failed", thunkAPI);
+  }
+});
 
 export const verifyOTP = createAsyncThunk(
   "user/verifyOTP",
@@ -108,17 +85,10 @@ export const verifyOTP = createAsyncThunk(
         email,
         otp,
       });
-
       toast.success(res?.data?.message || "Email verified successfully!");
-      // ... now you can find the correct path
-      return res.data.data.user; // Assuming it's nested like the login
+      return res.data.data.user;
     } catch (err) {
-      const errorMessage =
-        err?.response?.data?.message || "OTP verification failed";
-      toast.error(errorMessage);
-      return thunkAPI.rejectWithValue(
-        err?.response?.data || { message: errorMessage }
-      );
+      return handleError(err, "OTP verification failed", thunkAPI);
     }
   }
 );
@@ -136,58 +106,10 @@ export const resendOTP = createAsyncThunk(
       );
       return res.data;
     } catch (err) {
-      const errorMessage =
-        err?.response?.data?.message || "Failed to resend OTP";
-      toast.error(errorMessage);
-      return thunkAPI.rejectWithValue(
-        err?.response?.data || { message: errorMessage }
-      );
+      return handleError(err, "Failed to resend OTP", thunkAPI);
     }
   }
 );
-
-export const updateProfilePicture = createAsyncThunk(
-  "user/updateProfilePicture",
-  async ({ imageFile, previewUrl }, thunkAPI) => {
-    try {
-      const formData = new FormData();
-      formData.append("profilePicture", imageFile);
-
-      const res = await axiosClient.patch(
-        "/college-admin/profile-picture",
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        }
-      );
-
-      toast.success(res?.data?.message || "Profile picture updated!");
-      // The API should return the updated user object
-      return res.data.data;
-    } catch (err) {
-      console.error("Error updating profile picture:", err);
-      const errorMessage =
-        err?.response?.data?.message || "Failed to update profile picture";
-      toast.error(errorMessage);
-      return thunkAPI.rejectWithValue(
-        err?.response?.data || { message: errorMessage }
-      );
-    }
-  }
-);
-
-export const logout = createAsyncThunk("user/logout", async (_, thunkAPI) => {
-  try {
-    const res = await axiosClient.get("/auth/college-admin/logout");
-    toast.success(res?.data?.message || "Logged out successfully");
-    return res.data;
-  } catch (err) {
-    toast.error(err?.response?.data?.message || "Error logging out");
-    return thunkAPI.rejectWithValue(
-      err?.response?.data || { message: "Logout failed" }
-    );
-  }
-});
 
 export const restartVerification = createAsyncThunk(
   "user/restartVerification",
@@ -199,33 +121,124 @@ export const restartVerification = createAsyncThunk(
       );
       return res.data.email;
     } catch (err) {
-      console.error("Error restartVerification:", err);
-      const errorMessage =
-        err?.response?.data?.message || "Failed to restart verification";
-      toast.error(errorMessage);
-      return thunkAPI.rejectWithValue(
-        err?.response?.data || { message: errorMessage }
-      );
+      return handleError(err, "Failed to restart verification", thunkAPI);
     }
   }
 );
 
+// ============================================================================
+// THUNKS: USER DATA & SETTINGS
+// ============================================================================
+
+export const fetchUser = createAsyncThunk(
+  "user/fetchUser",
+  async (_, thunkAPI) => {
+    try {
+      const res = await axiosClient.get(
+        "/auth/college-admin/get-college-admin"
+      );
+      return res.data.data;
+    } catch (err) {
+      return handleError(err, "Failed to fetch user data", thunkAPI);
+    }
+  }
+);
+
+export const changePassword = createAsyncThunk(
+  "user/changePassword",
+  async (credentials, thunkAPI) => {
+    try {
+      const res = await axiosClient.post(
+        "/auth/college-admin/change-password",
+        credentials
+      );
+      toast.success(res?.data?.message || "Password changed successfully!");
+      return res.data;
+    } catch (err) {
+      return handleError(err, "Failed to change password", thunkAPI);
+    }
+  }
+);
+
+// ============================================================================
+// THUNKS: IMAGES & UPLOADS (Optimistic UI)
+// ============================================================================
+
+export const updateProfilePicture = createAsyncThunk(
+  "user/updateProfilePicture",
+  async ({ imageFile }, thunkAPI) => {
+    try {
+      const formData = new FormData();
+      formData.append("profilePicture", imageFile);
+
+      const res = await axiosClient.patch(
+        "/college-admin/profile-picture",
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
+
+      toast.success(res?.data?.message || "Profile picture updated!");
+      return res.data.data;
+    } catch (err) {
+      return handleError(err, "Failed to update profile picture", thunkAPI);
+    }
+  }
+);
+
+export const updateCollegeImage = createAsyncThunk(
+  "user/updateCollegeImage",
+  async ({ imageFile }, thunkAPI) => {
+    try {
+      const formData = new FormData();
+      formData.append("collegeImage", imageFile);
+
+      const res = await axiosClient.patch("/college/college-image", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      toast.success(res?.data?.message || "College Image updated!");
+      return res.data.data;
+    } catch (err) {
+      return handleError(err, "Failed to update college image", thunkAPI);
+    }
+  }
+);
+
+// ============================================================================
+// SLICE
+// ============================================================================
+
+const initialState = {
+  // --- Core User Data ---
+  user: null,
+  loading: true,
+  error: null,
+
+  // --- Authentication States ---
+  loggingIn: false,
+  registering: false,
+  verifying: false,
+  registeredEmail: null,
+  unverifiedEmail: null,
+
+  // --- Feature States ---
+  changingPassword: false,
+  changePasswordError: null,
+
+  // --- Optimistic UI: Profile Picture ---
+  updatingProfilePicture: false,
+  originalProfilePicture: null, // Fallback for rollback
+
+  // --- Optimistic UI: College Image ---
+  collegeImage: {
+    updatingImage: false,
+    orgCollegeImage: null, // Fallback for rollback
+  },
+};
+
 const userSlice = createSlice({
   name: "user",
-  initialState: {
-    user: null,
-    loading: true,
-    registering: false,
-    verifying: false,
-    loggingIn: false,
-    updatingProfilePicture: false, // New loading state for profile picture
-    originalProfilePicture: null, // To store the old URL for optimistic rollback
-    error: null,
-    registeredEmail: null,
-    unverifiedEmail: null,
-    changingPassword: false,
-    changePasswordError: null,
-  },
+  initialState,
   reducers: {
     setUser: (state, action) => {
       state.user = action.payload;
@@ -236,7 +249,7 @@ const userSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Fetch user cases
+      // --- Fetch User ---
       .addCase(fetchUser.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -251,26 +264,25 @@ const userSlice = createSlice({
         state.error = action.payload;
       })
 
-      // Login cases
+      // --- Login ---
       .addCase(login.pending, (state) => {
         state.loggingIn = true;
         state.error = null;
         state.unverifiedEmail = null;
       })
       .addCase(login.fulfilled, (state, action) => {
-        state.user = action.payload.data.user; // Correctly access the nested user object
+        state.user = action.payload.data.user;
         state.loggingIn = false;
       })
       .addCase(login.rejected, (state, action) => {
         state.loggingIn = false;
         state.error = action.payload;
-        // If user is unverified, set unverifiedEmail for OTP modal
         if (action.payload?.unverified) {
           state.unverifiedEmail = action.payload.email;
         }
       })
 
-      // Register cases
+      // --- Register ---
       .addCase(register.pending, (state) => {
         state.registering = true;
         state.error = null;
@@ -284,7 +296,7 @@ const userSlice = createSlice({
         state.error = action.payload;
       })
 
-      // Verify OTP cases
+      // --- Verify OTP ---
       .addCase(verifyOTP.pending, (state) => {
         state.verifying = true;
         state.error = null;
@@ -298,58 +310,82 @@ const userSlice = createSlice({
         state.verifying = false;
         state.error = action.payload;
       })
-      // Update Profile Picture cases (with Optimistic Update)
+
+      // --- Logout ---
+      .addCase(logout.fulfilled, (state) => {
+        state.user = null;
+      })
+
+      // --- Change Password ---
+      .addCase(changePassword.pending, (state) => {
+        state.changingPassword = true;
+        state.changePasswordError = null;
+      })
+      .addCase(changePassword.fulfilled, (state) => {
+        state.changingPassword = false;
+      })
+      .addCase(changePassword.rejected, (state, action) => {
+        state.changingPassword = false;
+        state.changePasswordError = action.payload;
+      })
+
+      // --- Update Profile Picture (Optimistic) ---
       .addCase(updateProfilePicture.pending, (state, action) => {
         state.updatingProfilePicture = true;
         state.error = null;
-        // Optimistic Update:
-        // 1. Save the current profile picture URL in case we need to revert.
-        state.originalProfilePicture = state.user.collegeAdmin.profilePicture;
-        // 2. Immediately update the UI with the local preview URL.
-        // The previewUrl is passed from the component when dispatching the action.
-        state.user.collegeAdmin.profilePicture = action.meta.arg.previewUrl;
+        // Optimistic update: Show local preview immediately
+        if (state.user?.collegeAdmin) {
+          state.originalProfilePicture = state.user.collegeAdmin.profilePicture;
+          state.user.collegeAdmin.profilePicture = action.meta.arg.previewUrl;
+        }
       })
       .addCase(updateProfilePicture.fulfilled, (state, action) => {
         state.updatingProfilePicture = false;
-
-        // ✅ MODIFICATION HERE
-        // Instead of replacing the whole user, we just update the specific property.
-        // The action.payload is now { profilePicture: "new-url.jpg" } from your backend.
-        if (state.user && state.user.collegeAdmin) {
+        // Confirm update with server response
+        if (state.user?.collegeAdmin) {
           state.user.collegeAdmin.profilePicture =
             action.payload.profilePicture;
         }
-
-        // Clear the stored original URL as the update is permanent.
         state.originalProfilePicture = null;
       })
       .addCase(updateProfilePicture.rejected, (state, action) => {
         state.updatingProfilePicture = false;
         state.error = action.payload;
-        // Rollback: The API call failed. Revert to the original profile picture.
-        if (state.user && state.originalProfilePicture) {
+        // Rollback on failure
+        if (state.user?.collegeAdmin && state.originalProfilePicture) {
           state.user.collegeAdmin.profilePicture = state.originalProfilePicture;
         }
-        // Clear the stored original URL.
         state.originalProfilePicture = null;
       })
-      // Logout case
-      .addCase(logout.fulfilled, (state) => {
-        // After logout, reset the state but ensure loading is FALSE.
-        state.user = null;
+
+      // --- Update College Image (Optimistic) ---
+      .addCase(updateCollegeImage.pending, (state, action) => {
+        state.collegeImage.updatingImage = true;
+        state.error = null;
+        if (state.user?.collegeAdmin?.collegeId) {
+          state.collegeImage.orgCollegeImage =
+            state.user.collegeAdmin.collegeId.image;
+          state.user.collegeAdmin.collegeId.image = action.meta.arg.previewUrl;
+        }
       })
-      // change password cases can be added here similarly
-      .addCase(changePassword.pending, (state) => {
-        state.changingPassword = true;
-        state.changePasswordError = null;
+      .addCase(updateCollegeImage.fulfilled, (state, action) => {
+        state.collegeImage.updatingImage = false;
+        if (state.user?.collegeAdmin?.collegeId) {
+          state.user.collegeAdmin.collegeId.image = action.payload.image;
+        }
+        state.collegeImage.orgCollegeImage = null;
       })
-      .addCase(changePassword.fulfilled, (state, action) => {
-        state.changingPassword = false;
-        // Handle successful password change if needed
-      })
-      .addCase(changePassword.rejected, (state, action) => {
-        state.changingPassword = false;
-        state.changePasswordError = action.payload;
+      .addCase(updateCollegeImage.rejected, (state, action) => {
+        state.collegeImage.updatingImage = false;
+        state.error = action.payload;
+        if (
+          state.user?.collegeAdmin?.collegeId &&
+          state.collegeImage.orgCollegeImage
+        ) {
+          state.user.collegeAdmin.collegeId.image =
+            state.collegeImage.orgCollegeImage;
+        }
+        state.collegeImage.orgCollegeImage = null;
       });
   },
 });

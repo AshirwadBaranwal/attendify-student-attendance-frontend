@@ -6,7 +6,7 @@ const Header = () => {
   const { user } = useSelector((state) => state.user);
 
   return (
-    <div className="sticky top-0 z-50 h-16 border-b border-border shadow-sm p-3 flex justify-between items-center pl-5 pr-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <div className="sticky top-0 z-50 h-16 border-b border-border shadow-sm p-3 flex justify-between items-center pl-5 pr-10 bg-sidebar   ">
       <div>
         <h2 className="text-xl font-bold text-foreground">
           {user?.collegeAdmin?.collegeId?.name}

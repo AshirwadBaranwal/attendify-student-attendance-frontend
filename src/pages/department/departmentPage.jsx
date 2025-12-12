@@ -1,24 +1,32 @@
-import { Button } from "@/components/ui/button";
+import { useState, useMemo } from "react";
+import { useSelector } from "react-redux";
 import {
   useDeleteDepartment,
   useGetDepartmentsByCollege,
 } from "@/utils/api/Departments";
-import React, { useState } from "react";
-import { useSelector } from "react-redux";
-import { DataTable } from "@/components/ui/data-table";
-import { Pencil, Trash, UserMinus } from "lucide-react";
+
+// Global Components
 import Header from "@/components/global/Header";
+import TableSkeleton from "@/components/global/TableLoading";
+import { DataTable } from "@/components/ui/data-table";
+import { Button } from "@/components/ui/button";
+
+// Feature Components
 import { DepartmentModal } from "./departmentModal";
-import { formatDate } from "@/utils/helper/Formatter";
-import TableSkeleton from "../../components/global/TableLoading";
+import { getDepartmentColumns } from "./DepartmentColumns";
+import { ConfirmDeleteModal } from "@/components/global/ConfirmDeleteModal";
 
 const DepartmentPage = () => {
   const { user } = useSelector((state) => state.user);
-  const [openCreate, setOpenCreate] = useState(false);
-  const [openUpdate, setOpenUpdate] = useState(false);
-  const [selectedDepartment, setSelectedDepartment] = useState(null); // ✅ for update
   const collegeId = user?.collegeAdmin?.collegeId._id;
 
+  // --- Unified Modal State ---
+  const [modalState, setModalState] = useState({
+    type: null, // 'create' | 'update' | 'delete'
+    data: null,
+  });
+
+  // --- API Hooks ---
   const {
     data: responseData,
     isLoading,
@@ -29,108 +37,39 @@ const DepartmentPage = () => {
   const { mutate: deleteDepartment, isPending: isDeleting } =
     useDeleteDepartment();
 
-  if (isError) {
-    return <div>An error occurred: {error.message}</div>;
-  }
+  // --- Handlers ---
+  const handleClose = () => setModalState({ type: null, data: null });
 
-  const handleOpenCreate = () => {
-    setOpenCreate(true);
-  };
+  const handleCreate = () => setModalState({ type: "create", data: null });
 
-  const handleOpenUpdate = (department) => {
-    setSelectedDepartment(department);
-    setOpenUpdate(true);
-  };
+  const handleUpdate = (department) =>
+    setModalState({ type: "update", data: department });
 
-  const handleDelete = (department) => {
-    if (window.confirm(`Are you sure you want to delete ${department.name}?`)) {
-      deleteDepartment(department._id);
-    }
-  };
+  const handleConfirmDelete = (department) =>
+    setModalState({ type: "delete", data: department });
 
-  const columns = [
-    {
-      id: "slNo",
-      header: "Sl No.",
-      cell: ({ row }) => row.index + 1,
-      enableSorting: false,
-    },
-    {
-      accessorKey: "name",
-      header: "Department Name",
-      cell: ({ row }) => row.original.name,
-    },
-    {
-      id: "duration",
-      header: "Duration",
-      cell: ({ row }) =>
-        (row.original.duration || "N/A") +
-        " " +
-        (row.original.academicType || "N/A"),
-      enableSorting: false,
-    },
-    {
-      accessorKey: "adminId?.name",
-      header: "Admin",
-      cell: ({ row }) =>
-        row.original.adminId?.name || (
-          <p className="text-red-600">Not Assigned</p>
-        ),
-    },
-    {
-      accessorKey: "createdAt",
-      header: "Created At",
-      cell: ({ row }) => formatDate(row.original.createdAt),
-    },
-    {
-      accessorKey: "headOfDepartment.name",
-      header: "HOD Name",
-      cell: ({ row }) =>
-        row.original.headOfDepartment?.name || (
-          <p className="text-red-600">Not Assigned</p>
-        ),
-    },
-    {
-      accessorKey: "headOfDepartment.phone",
-      header: "HOD Phone",
-      cell: ({ row }) => "+91 " + row.original.headOfDepartment?.phone || "N/A",
-    },
-    {
-      id: "actions",
-      header: "Actions",
-      cell: ({ row }) => {
-        const department = row.original;
+  const executeDelete = () => {
+    if (!modalState.data) return;
 
-        return (
-          <div className="flex space-x-2">
-            {/* ✅ Pass row data on edit */}
-            <Button
-              onClick={() => handleOpenUpdate(department)}
-              variant="outline"
-              size="sm"
-              className="h-8 w-8 p-0"
-            >
-              <Pencil className="h-4 w-4" />
-            </Button>
-
-            <Button
-              variant="outline"
-              size="sm"
-              className={`h-8 w-8 p-0 text-red-600 ${
-                isDeleting && "cursor-not-allowed"
-              }`}
-              disabled={isDeleting}
-              onClick={() => handleDelete(department)}
-            >
-              <Trash className="h-4 w-4" />
-            </Button>
-          </div>
-        );
+    deleteDepartment(modalState.data._id, {
+      onSuccess: () => {
+        // toast.success("Department deleted successfully");
+        handleClose();
       },
-    },
-  ];
+    });
+  };
 
-  const ColumnsArray = [
+  // --- Columns Configuration ---
+  const columns = useMemo(
+    () =>
+      getDepartmentColumns(
+        handleUpdate, // onEdit
+        handleConfirmDelete // onDelete
+      ),
+    []
+  );
+
+  const skeletonColumns = [
     "Sl No.",
     "Department Name",
     "Duration",
@@ -141,40 +80,54 @@ const DepartmentPage = () => {
     "Actions",
   ];
 
+  if (isError) {
+    return (
+      <div className="p-5 text-red-500">An error occurred: {error.message}</div>
+    );
+  }
+
   return (
     <div>
       <Header />
-      <div className="container mx-auto px-5 ">
-        <h1 className="text-2xl font-bold  py-3">Department Management</h1>
-        {!responseData?.data ? (
-          <TableSkeleton ColumnsArray={ColumnsArray} />
+      <div className="container mx-auto px-5">
+        <div className="flex justify-between items-center py-3">
+          <h1 className="text-2xl font-bold">Department Management</h1>
+        </div>
+
+        {isLoading ? (
+          <TableSkeleton ColumnsArray={skeletonColumns} />
         ) : (
           <DataTable
             columns={columns}
-            data={responseData.data}
+            data={responseData?.data || []}
             searchPlaceholder="Search departments..."
             actionButton={
-              <Button onClick={handleOpenCreate}>Add New Department</Button>
+              <Button onClick={handleCreate}>Add New Department</Button>
             }
           />
         )}
       </div>
 
-      {/* ✅ Create Modal */}
+      {/* --- Modals --- */}
+
+      {/* Create / Update Modal */}
       <DepartmentModal
-        open={openCreate}
-        onClose={() => setOpenCreate(false)}
+        open={modalState.type === "create" || modalState.type === "update"}
+        onClose={handleClose}
         collegeId={collegeId}
-        action="create"
+        action={modalState.type === "create" ? "create" : "update"}
+        initialData={modalState.data}
       />
 
-      {/* ✅ Update Modal with selected row */}
-      <DepartmentModal
-        open={openUpdate}
-        onClose={() => setOpenUpdate(false)}
-        collegeId={collegeId}
-        action="update"
-        initialData={selectedDepartment} // 👈 pass row data
+      {/* Universal Delete (With Validation) */}
+      <ConfirmDeleteModal
+        isOpen={modalState.type === "delete"}
+        onClose={handleClose}
+        onConfirm={executeDelete}
+        isLoading={isDeleting}
+        title={`Delete ${modalState.data?.name}?`}
+        validationString={modalState.data?.name}
+        description="This action cannot be undone. This will permanently delete the department and its associated data."
       />
     </div>
   );

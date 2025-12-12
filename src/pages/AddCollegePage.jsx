@@ -31,12 +31,7 @@ const collegeSchema = z.object({
 });
 
 const AddCollegePage = () => {
-  const { user, loading } = useSelector((state) => state.user);
-  // If loading, show nothing (or could add a loading spinner here)
-  if (loading) {
-    return null;
-  }
-
+  const { loading } = useSelector((state) => state.user);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -51,6 +46,10 @@ const AddCollegePage = () => {
       address: "",
     },
   });
+  // If loading, show nothing (or could add a loading spinner here)
+  if (loading) {
+    return null;
+  }
 
   // Handle form submission
   const onSubmit = async (data) => {

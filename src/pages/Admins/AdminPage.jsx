@@ -1,27 +1,35 @@
-import Header from "@/components/global/Header";
-import { Button } from "@/components/ui/button";
-import { DataTable } from "@/components/ui/data-table";
+import { useState, useMemo } from "react";
+import { useSelector } from "react-redux";
 import {
   useDeleteAdmin,
   useGetDepartmentAdminsByCollege,
 } from "@/utils/api/DepartmentAdmin";
-import { formatDate } from "@/utils/helper/Formatter";
-import { Pencil, Trash, UserPlus } from "lucide-react";
-import React, { useState } from "react";
-import { useSelector } from "react-redux";
-import { AdminModal } from "./AdminCreateModal";
+
+// Global Components
+import Header from "@/components/global/Header";
 import TableSkeleton from "@/components/global/TableLoading";
+import { DataTable } from "@/components/ui/data-table";
+import { Button } from "@/components/ui/button";
+
+// Feature Components
+
+import { getAdminColumns } from "./AdminColumns";
+import { AdminModal } from "./AdminCreateModal";
+import { ConfirmDeleteModal } from "@/components/global/ConfirmDeleteModal";
 
 const AdminPage = () => {
   const { user } = useSelector((state) => state.user);
-  const [openCreate, setOpenCreate] = useState(false);
-  const [openUpdate, setOpenUpdate] = useState(false);
-  const [selectedAdmin, setSelectedAdmin] = useState(null); // ✅ for update
   const collegeId = user?.collegeAdmin?.collegeId._id;
   const collegeAdminName = user?.collegeAdmin?.name;
 
-  // Getting Admins List Data ***********
+  // --- Unified Modal State ---
+  // Convention: Manages all modal types and associated data in one object
+  const [modalState, setModalState] = useState({
+    type: null, // 'create' | 'update' | 'delete'
+    data: null,
+  });
 
+  // --- API Hooks ---
   const {
     data: responseData,
     isLoading,
@@ -31,120 +39,42 @@ const AdminPage = () => {
 
   const { mutate: deleteAdmin, isPending: isDeleting } = useDeleteAdmin();
 
-  // if (isLoading) {
-  //   return <div>Loading departments...</div>;
-  // }
+  // --- Handlers ---
+  const handleClose = () => setModalState({ type: null, data: null });
 
-  if (isError) {
-    return <div>An error occurred: {error.message}</div>;
-  }
+  const handleCreate = () => setModalState({ type: "create", data: null });
 
-  const handleOpenCreate = () => {
-    setOpenCreate(true);
+  const handleUpdate = (admin) =>
+    setModalState({ type: "update", data: admin });
+
+  const handleConfirmDelete = (admin) =>
+    setModalState({ type: "delete", data: admin });
+
+  const executeDelete = () => {
+    if (!modalState.data) return;
+
+    deleteAdmin(
+      { collegeId, adminId: modalState.data._id },
+      {
+        onSuccess: () => {
+          // toast.success("Admin deleted successfully"); // Optional if API hook doesn't handle toast
+          handleClose();
+        },
+      }
+    );
   };
 
-  const handleOpenUpdate = (admin) => {
-    setSelectedAdmin(admin); // ✅ save row data
-    setOpenUpdate(true);
-  };
+  // --- Columns Configuration ---
+  const columns = useMemo(
+    () =>
+      getAdminColumns(
+        handleUpdate, // onEdit
+        handleConfirmDelete // onDelete
+      ),
+    []
+  );
 
-  const handleDelete = (admin) => {
-    if (
-      window.confirm(`Are you sure you want to delete admin ${admin.name}?`)
-    ) {
-      deleteAdmin({ collegeId, adminId: admin._id });
-    }
-  };
-
-  const columns = [
-    {
-      id: "slNo",
-      header: "Sl No.",
-      cell: ({ row }) => row.index + 1,
-    },
-    {
-      accessorKey: "name",
-      header: "Admin Information",
-      cell: ({ row }) => {
-        const admin = row.original;
-        return (
-          <div>
-            <div className="font-medium">{admin.name}</div>
-            <div className="text-sm text-gray-600">{admin.user.email}</div>
-          </div>
-        );
-      },
-    },
-
-    {
-      accessorKey: "department.name",
-      header: "Department",
-      cell: ({ row }) =>
-        row.original.department.name || (
-          <p className="text-red-600">Not Assigned</p>
-        ),
-    },
-    {
-      accessorKey: "status",
-      header: "Status",
-      cell: ({ row }) =>
-        row.original.status === true ? (
-          <span className="bg-green-200 text-green-700 rounded-xl px-3 py-0.5 text-xs">
-            Active
-          </span>
-        ) : (
-          <span className="bg-red-200 text-red-700 rounded-xl px-3 py-0.5 text-xs ">
-            Inactive
-          </span>
-        ),
-    },
-    {
-      accessorKey: "phone",
-      header: "Admin Phone",
-      cell: ({ row }) => "+91 " + row.original.phone || "N/A",
-    },
-    {
-      accessorKey: "createdAt",
-      header: "Created At",
-      cell: ({ row }) => formatDate(row.original.createdAt),
-    },
-
-    {
-      id: "actions",
-      header: "Actions",
-      cell: ({ row }) => {
-        const admin = row.original;
-
-        return (
-          <div className="flex space-x-2">
-            {/* ✅ Pass row data on edit */}
-            <Button
-              onClick={() => handleOpenUpdate(admin)}
-              variant="outline"
-              size="sm"
-              className="h-8 w-8 p-0"
-            >
-              <Pencil className="h-4 w-4" />
-            </Button>
-
-            <Button
-              variant="outline"
-              size="sm"
-              className={`h-8 w-8 p-0 text-red-600 ${
-                isDeleting && "cursor-not-allowed"
-              }`}
-              disabled={isDeleting}
-              onClick={() => handleDelete(admin)}
-            >
-              <Trash className="h-4 w-4" />
-            </Button>
-          </div>
-        );
-      },
-    },
-  ];
-
-  const ColumnsArray = [
+  const skeletonColumns = [
     "Sl No.",
     "Admin Information",
     "Department",
@@ -154,41 +84,54 @@ const AdminPage = () => {
     "Actions",
   ];
 
+  if (isError) {
+    return (
+      <div className="p-5 text-red-500">An error occurred: {error.message}</div>
+    );
+  }
+
   return (
     <div>
       <Header />
-      <div className="container mx-auto px-5 ">
-        <h1 className="text-2xl font-bold  py-3">Admins Management</h1>
-        {!responseData?.data ? (
-          <TableSkeleton ColumnsArray={ColumnsArray} />
+      <div className="container mx-auto px-5">
+        <div className="flex justify-between items-center py-3">
+          <h1 className="text-2xl font-bold">Admins Management</h1>
+        </div>
+
+        {isLoading ? (
+          <TableSkeleton ColumnsArray={skeletonColumns} />
         ) : (
           <DataTable
             columns={columns}
-            data={responseData?.data}
+            data={responseData?.data || []}
             searchPlaceholder="Search Admins..."
-            actionButton={
-              <Button onClick={handleOpenCreate}>Add New Admin</Button>
-            }
+            actionButton={<Button onClick={handleCreate}>Add New Admin</Button>}
           />
         )}
       </div>
-      {/* ✅ Create Modal */}
+
+      {/* --- Modals --- */}
+
+      {/* Create / Update Modal */}
+      {/* We reuse the same component, passing 'action' and 'initialData' derived from state */}
       <AdminModal
-        open={openCreate}
-        onClose={() => setOpenCreate(false)}
+        open={modalState.type === "create" || modalState.type === "update"}
+        onClose={handleClose}
         collegeId={collegeId}
         collegeAdminName={collegeAdminName}
-        action="create"
+        action={modalState.type === "create" ? "create" : "update"}
+        initialData={modalState.data}
       />
 
-      {/* ✅ Update Modal with selected row */}
-      <AdminModal
-        open={openUpdate}
-        onClose={() => setOpenUpdate(false)}
-        collegeId={collegeId}
-        action="update"
-        collegeAdminName={collegeAdminName}
-        initialData={selectedAdmin} // 👈 pass row data
+      {/* Universal Delete (With Validation) */}
+      <ConfirmDeleteModal
+        isOpen={modalState.type === "delete"}
+        onClose={handleClose}
+        onConfirm={executeDelete}
+        isLoading={isDeleting}
+        title={`Delete ${modalState.data?.name}?`}
+        validationString={modalState.data?.name}
+        description="This action cannot be undone. This will permanently remove the admin and their data."
       />
     </div>
   );

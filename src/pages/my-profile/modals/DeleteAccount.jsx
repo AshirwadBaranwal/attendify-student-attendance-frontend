@@ -1,6 +1,3 @@
-import React, { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -11,10 +8,14 @@ import {
   DialogTrigger,
   DialogClose,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
+import { useState } from "react";
+import { useSelector } from "react-redux";
 import { AlertTriangle } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
-const DeleteAccountModal = ({ children, user }) => {
+const DeleteAccountModal = ({ children }) => {
+  const { user } = useSelector((state) => state.user);
   const [confirmationText, setConfirmationText] = useState("");
   const isConfirmationMatching =
     confirmationText === user?.collegeAdmin?.collegeId?.name;
@@ -53,30 +54,4 @@ const DeleteAccountModal = ({ children, user }) => {
   );
 };
 
-const DangerZoneTab = ({ user }) => {
-  return (
-    <Card className="border-destructive">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-destructive">
-          <AlertTriangle size={20} /> Danger Zone
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="p-4 border border-destructive/30 rounded-lg bg-destructive/5">
-          <h3 className="font-bold text-destructive">Delete This Account</h3>
-          <p className="text-sm text-gray-600 mt-2 mb-4">
-            Once you delete your account, there is no going back. Please be
-            certain.
-          </p>
-          <DeleteAccountModal user={user}>
-            <Button variant="destructive">
-              Delete Account and All College Data
-            </Button>
-          </DeleteAccountModal>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
-
-export default DangerZoneTab;
+export default DeleteAccountModal;

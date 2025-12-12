@@ -168,7 +168,7 @@ export default function Login() {
           navigate("/");
         })
         .catch((err) => {
-          // Error is handled by the reducer and displayed in the UI
+          // console.log(err);
         });
     } else {
       toast.error("Please enter a valid 6-digit OTP");

@@ -20,9 +20,6 @@ import { toast } from "sonner"; // Assuming sonner is used for toasts
 import { useSelector, useDispatch } from "react-redux";
 import { changePassword } from "@/redux/features/user/userSlice";
 
-/**
- * Input field component with password visibility toggle.
- */
 const PasswordInputWithToggle = ({ id, label, value, onChange, isPending }) => {
   const [showPassword, setShowPassword] = useState(false);
 

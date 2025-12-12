@@ -43,7 +43,7 @@ const menuItems = [
   {
     title: "Profile",
     icon: <ShieldUser size={20} />,
-    link: "/profile",
+    link: "/my-profile",
   },
 ];
 

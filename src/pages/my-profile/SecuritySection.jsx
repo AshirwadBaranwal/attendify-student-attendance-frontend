@@ -9,11 +9,11 @@ import {
 } from "@/components/ui/card";
 
 import { ShieldCheck } from "lucide-react";
-import ChangePasswordModal from "../components/ChangePasswordModal";
+import ChangePasswordModal from "./modals/ChangePasswordModal";
 
-const SecurityTab = () => {
+const SecuritySection = () => {
   return (
-    <Card>
+    <Card className="rounded-none">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <ShieldCheck size={20} /> Security Settings
@@ -26,7 +26,7 @@ const SecurityTab = () => {
         <div className="flex items-center justify-between p-4 border rounded-lg">
           <div>
             <h3 className="font-semibold">Password</h3>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-muted-foreground">
               Change your password regularly to keep your account secure.
             </p>
           </div>
@@ -39,4 +39,4 @@ const SecurityTab = () => {
   );
 };
 
-export default SecurityTab;
+export default SecuritySection;
