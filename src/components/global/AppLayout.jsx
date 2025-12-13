@@ -22,6 +22,7 @@ const AppLayout = () => {
         <img
           src="/logo.png"
           alt="Attendify Loading..."
+          fetchPriority="high"
           className="size-24 animate-pulse "
         />
       </div>

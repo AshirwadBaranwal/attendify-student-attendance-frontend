@@ -1,8 +1,15 @@
-import React, { useEffect, useState, useCallback, memo } from "react";
+import React, {
+  useEffect,
+  useState,
+  useCallback,
+  memo,
+  lazy,
+  Suspense,
+} from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react"; // Removed unused AlertCircle
 import { useDispatch, useSelector } from "react-redux";
 import {
   login,
@@ -12,19 +19,31 @@ import {
 } from "@/redux/features/user/userSlice";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import OTPModal from "@/components/auth/OTPModal";
-import ForgotPasswordModal from "@/components/auth/ForgotPasswordModal";
 
-// Zod schema for form validation
+// 1. Lazy Load Modals (Saves bundle size on initial load)
+const OTPModal = lazy(() => import("@/components/auth/OTPModal"));
+const ForgotPasswordModal = lazy(() =>
+  import("@/components/auth/ForgotPasswordModal")
+);
+
+// Zod schema
 const loginSchema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
-// Memoized components to prevent unnecessary re-renders
+// --- Optimized Image Components ---
+
 const LogoSection = memo(() => (
   <div className="absolute top-8 left-8 space-x-2 flex items-center justify-center">
-    <img src="/logo.png" alt="Attendify" className="w-6 h-6" />
+    {/* Added explicit width/height to prevent Layout Shifts */}
+    <img
+      src="/logo.png"
+      alt="Attendify"
+      className="w-6 h-6"
+      width="24"
+      height="24"
+    />
     <span className="text-xl font-semibold text-gray-100">Attendify</span>
   </div>
 ));
@@ -32,11 +51,21 @@ const LogoSection = memo(() => (
 const LeftSideImage = memo(() => (
   <div className="max-h-screen overflow-hidden hidden md:flex md:w-1/2 items-center justify-center bg-primary">
     <LogoSection />
-    <img src="/loginpageimage.svg" alt="Login Visual" className="h-5/6" />
+    {/* 1. fetchpriority="high": Tells browser this is important (LCP optimization)
+       2. width/height: Prevents layout shift
+       3. alt: Good for accessibility
+    */}
+    <img
+      src="/loginpageimage.svg"
+      alt="Login Visual"
+      className="h-5/6 w-auto object-contain"
+      width="600" // Approx width of your SVG
+      height="800" // Approx height of your SVG
+      fetchPriority="high"
+    />
   </div>
 ));
 
-// Updated for Dark Mode
 const WelcomeHeader = memo(() => (
   <div className="text-left mb-8">
     <h2 className="text-4xl font-bold text-gray-800 dark:text-white mb-2">
@@ -54,7 +83,6 @@ const WelcomeHeader = memo(() => (
   </div>
 ));
 
-// Optimized input field component with Dark Mode styles
 const InputField = memo(
   ({
     id,
@@ -104,7 +132,6 @@ const InputField = memo(
   )
 );
 
-// Custom Button component
 const Button = memo(
   ({ children, disabled, type = "button", className, ...props }) => (
     <button
@@ -127,25 +154,21 @@ export default function Login() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  // Get state from Redux
   const { loggingIn, verifying, unverifiedEmail } = useSelector(
     (state) => state.user
   );
 
-  // Open OTP modal when unverified user tries to login
   useEffect(() => {
     if (unverifiedEmail) {
       setIsModalOpen(true);
     }
   }, [unverifiedEmail]);
 
-  // Close modal and clear any errors
   const closeModal = useCallback(() => {
     setIsModalOpen(false);
     dispatch(clearError());
   }, [dispatch]);
 
-  // React Hook Form setup with optimized mode
   const {
     register,
     handleSubmit,
@@ -177,7 +200,7 @@ export default function Login() {
           navigate("/");
         })
         .catch((err) => {
-          // console.log(err);
+          // handled by redux error state
         });
     } else {
       toast.error("Please enter a valid 6-digit OTP");
@@ -205,20 +228,14 @@ export default function Login() {
   );
 
   return (
-    // Updated container background colors
     <div className="min-h-screen flex flex-col md:flex-row bg-background font-inter">
-      {/* Left Side: Image and Decorative Elements */}
       <LeftSideImage />
 
-      {/* Right Side: Login Form - Added dark mode background */}
       <div className="w-full md:w-1/2 flex flex-col justify-center items-center px-6 py-6 max-h-screen overflow-auto bg-gray-50 dark:bg-gray-950 transition-colors duration-200">
         <div className="w-full max-w-lg space-y-6 rounded-3xl p-10">
-          {/* Welcome Text */}
           <WelcomeHeader />
 
-          {/* Login Form */}
           <div className="space-y-6">
-            {/* Email Input */}
             <InputField
               id="email"
               label="Email"
@@ -228,7 +245,6 @@ export default function Login() {
               placeholder="Enter your email address"
             />
 
-            {/* Password Input */}
             <InputField
               id="password"
               label="Password"
@@ -241,7 +257,6 @@ export default function Login() {
               isPassword={true}
             />
 
-            {/* Forgot Password Link */}
             <div className="text-right">
               <button
                 type="button"
@@ -252,7 +267,6 @@ export default function Login() {
               </button>
             </div>
 
-            {/* Sign In Button */}
             <Button
               type="button"
               onClick={handleSubmit(onSubmit)}
@@ -272,23 +286,28 @@ export default function Login() {
         </div>
       </div>
 
-      {/* OTP Modal */}
-      <OTPModal
-        isOpen={isModalOpen}
-        onClose={closeModal}
-        useCase="login"
-        onOtpChange={handleOtpChange}
-        onVerify={handleVerifyOtp}
-        onResend={handleResendOtp}
-        isVerifying={verifying}
-        email={unverifiedEmail}
-      />
+      {/* 2. Wrap Modals in Suspense for safe lazy loading */}
+      <Suspense fallback={null}>
+        {isModalOpen && (
+          <OTPModal
+            isOpen={isModalOpen}
+            onClose={closeModal}
+            useCase="login"
+            onOtpChange={handleOtpChange}
+            onVerify={handleVerifyOtp}
+            onResend={handleResendOtp}
+            isVerifying={verifying}
+            email={unverifiedEmail}
+          />
+        )}
 
-      {/* Forgot Password Modal */}
-      <ForgotPasswordModal
-        isOpen={isForgotPasswordOpen}
-        onClose={() => setIsForgotPasswordOpen(false)}
-      />
+        {isForgotPasswordOpen && (
+          <ForgotPasswordModal
+            isOpen={isForgotPasswordOpen}
+            onClose={() => setIsForgotPasswordOpen(false)}
+          />
+        )}
+      </Suspense>
     </div>
   );
 }

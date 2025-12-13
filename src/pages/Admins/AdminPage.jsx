@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback, lazy, Suspense } from "react"; // 1. Add lazy & Suspense
 import { useSelector } from "react-redux";
 import {
   useDeleteAdmin,
@@ -10,26 +10,46 @@ import Header from "@/components/global/Header";
 import TableSkeleton from "@/components/global/TableLoading";
 import { DataTable } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
-
-// Feature Components
-
 import { getAdminColumns } from "./AdminColumns";
-import { AdminModal } from "./AdminCreateModal";
-import { ConfirmDeleteModal } from "@/components/global/ConfirmDeleteModal";
+
+// 2. Remove static imports for Modals
+// import { AdminModal } from "./AdminCreateModal";
+// import { ConfirmDeleteModal } from "@/components/global/ConfirmDeleteModal";
+
+// 3. Lazy Import the Modals
+// Note: If these are Named Exports (export const ...), we use this .then() syntax
+const AdminModal = lazy(() =>
+  import("./AdminCreateModal").then((module) => ({
+    default: module.AdminModal,
+  }))
+);
+const ConfirmDeleteModal = lazy(() =>
+  import("@/components/global/ConfirmDeleteModal").then((module) => ({
+    default: module.ConfirmDeleteModal,
+  }))
+);
+
+// Move static data outside component to prevent recreation on render
+const SKELETON_COLUMNS = [
+  "Sl No.",
+  "Admin Information",
+  "Department",
+  "Status",
+  "Admin Phone",
+  "Created At",
+  "Actions",
+];
 
 const AdminPage = () => {
   const { user } = useSelector((state) => state.user);
-  const collegeId = user?.collegeAdmin?.collegeId._id;
+  const collegeId = user?.collegeAdmin?.collegeId?._id; // Added safety check (?)
   const collegeAdminName = user?.collegeAdmin?.name;
 
-  // --- Unified Modal State ---
-  // Convention: Manages all modal types and associated data in one object
   const [modalState, setModalState] = useState({
-    type: null, // 'create' | 'update' | 'delete'
+    type: null,
     data: null,
   });
 
-  // --- API Hooks ---
   const {
     data: responseData,
     isLoading,
@@ -39,54 +59,47 @@ const AdminPage = () => {
 
   const { mutate: deleteAdmin, isPending: isDeleting } = useDeleteAdmin();
 
-  // --- Handlers ---
-  const handleClose = () => setModalState({ type: null, data: null });
-
-  const handleCreate = () => setModalState({ type: "create", data: null });
-
-  const handleUpdate = (admin) =>
-    setModalState({ type: "update", data: admin });
-
-  const handleConfirmDelete = (admin) =>
-    setModalState({ type: "delete", data: admin });
-
-  const executeDelete = () => {
-    if (!modalState.data) return;
-
-    deleteAdmin(
-      { collegeId, adminId: modalState.data._id },
-      {
-        onSuccess: () => {
-          // toast.success("Admin deleted successfully"); // Optional if API hook doesn't handle toast
-          handleClose();
-        },
-      }
-    );
-  };
-
-  // --- Columns Configuration ---
-  const columns = useMemo(
-    () =>
-      getAdminColumns(
-        handleUpdate, // onEdit
-        handleConfirmDelete // onDelete
-      ),
+  // --- Optimized Handlers ---
+  // 4. Wrap handlers in useCallback.
+  // Without this, 'columns' regenerates on every render, defeating the purpose of useMemo.
+  const handleClose = useCallback(
+    () => setModalState({ type: null, data: null }),
     []
   );
 
-  const skeletonColumns = [
-    "Sl No.",
-    "Admin Information",
-    "Department",
-    "Status",
-    "Admin Phone",
-    "Created At",
-    "Actions",
-  ];
+  const handleCreate = useCallback(
+    () => setModalState({ type: "create", data: null }),
+    []
+  );
+
+  const handleUpdate = useCallback(
+    (admin) => setModalState({ type: "update", data: admin }),
+    []
+  );
+
+  const handleConfirmDelete = useCallback(
+    (admin) => setModalState({ type: "delete", data: admin }),
+    []
+  );
+
+  const executeDelete = () => {
+    if (!modalState.data) return;
+    deleteAdmin(
+      { collegeId, adminId: modalState.data._id },
+      { onSuccess: handleClose }
+    );
+  };
+
+  const columns = useMemo(
+    () => getAdminColumns(handleUpdate, handleConfirmDelete),
+    [handleUpdate, handleConfirmDelete] // Now stable because of useCallback
+  );
 
   if (isError) {
     return (
-      <div className="p-5 text-red-500">An error occurred: {error.message}</div>
+      <div className="p-5 text-red-500">
+        An error occurred: {error?.message}
+      </div>
     );
   }
 
@@ -99,7 +112,7 @@ const AdminPage = () => {
         </div>
 
         {isLoading ? (
-          <TableSkeleton ColumnsArray={skeletonColumns} />
+          <TableSkeleton ColumnsArray={SKELETON_COLUMNS} />
         ) : (
           <DataTable
             columns={columns}
@@ -110,29 +123,36 @@ const AdminPage = () => {
         )}
       </div>
 
-      {/* --- Modals --- */}
+      {/* 5. Wrap Modals in Suspense */}
+      {/* We only render Suspense if a modal is actually open to prevent flickering */}
+      {modalState.type && (
+        <Suspense fallback={null}>
+          {/* Fallback is null because modals open over existing content */}
 
-      {/* Create / Update Modal */}
-      {/* We reuse the same component, passing 'action' and 'initialData' derived from state */}
-      <AdminModal
-        open={modalState.type === "create" || modalState.type === "update"}
-        onClose={handleClose}
-        collegeId={collegeId}
-        collegeAdminName={collegeAdminName}
-        action={modalState.type === "create" ? "create" : "update"}
-        initialData={modalState.data}
-      />
+          {(modalState.type === "create" || modalState.type === "update") && (
+            <AdminModal
+              open={true}
+              onClose={handleClose}
+              collegeId={collegeId}
+              collegeAdminName={collegeAdminName}
+              action={modalState.type === "create" ? "create" : "update"}
+              initialData={modalState.data}
+            />
+          )}
 
-      {/* Universal Delete (With Validation) */}
-      <ConfirmDeleteModal
-        isOpen={modalState.type === "delete"}
-        onClose={handleClose}
-        onConfirm={executeDelete}
-        isLoading={isDeleting}
-        title={`Delete ${modalState.data?.name}?`}
-        validationString={modalState.data?.name}
-        description="This action cannot be undone. This will permanently remove the admin and their data."
-      />
+          {modalState.type === "delete" && (
+            <ConfirmDeleteModal
+              isOpen={true}
+              onClose={handleClose}
+              onConfirm={executeDelete}
+              isLoading={isDeleting}
+              title={`Delete ${modalState.data?.name}?`}
+              validationString={modalState.data?.name}
+              description="This action cannot be undone."
+            />
+          )}
+        </Suspense>
+      )}
     </div>
   );
 };

@@ -1,75 +1,103 @@
 import { createRoot } from "react-dom/client";
 import "./index.css";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { Provider } from "react-redux";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { lazy, Suspense } from "react"; // 1. Import lazy and Suspense
+
+// Keep non-page components as static imports (usually fine)
 import ProtectedRoute from "@/components/global/ProtectedRoute";
 import PublicRoute from "@/components/global/PublicRoute";
-import LoginPage from "@/pages/auth/LoginPage";
-import RegisterPage from "@/pages/auth/RegisterPage";
-import Dashboard from "@/pages/dashboard/dashboard";
-import { Provider } from "react-redux";
+import AppLayout from "./components/global/AppLayout";
 import store from "./redux/app/store";
 import { Toaster } from "./components/ui/sonner";
-import AppLayout from "./components/global/AppLayout";
-import SidebarLayout from "./pages/dashboard/sidebarLayout";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import DepartmentPage from "./pages/department/departmentPage";
-import AdminPage from "./pages/Admins/AdminPage";
-// import ProfilePage from "./pages/profile/ProfilePage";
-import MyProfilePage from "./pages/my-profile/MyProfilePage";
+import Loading from "./components/global/Loading";
+
+// 2. Convert Page imports to Lazy Imports
+// This tells Vite: "Don't bundle these yet. Create separate files."
+const LoginPage = lazy(() => import("@/pages/auth/LoginPage"));
+const RegisterPage = lazy(() => import("@/pages/auth/RegisterPage"));
+const Dashboard = lazy(() => import("@/pages/dashboard/dashboard"));
+const SidebarLayout = lazy(() => import("./pages/dashboard/sidebarLayout"));
+const DepartmentPage = lazy(() => import("./pages/department/departmentPage"));
+const AdminPage = lazy(() => import("./pages/Admins/AdminPage"));
+const MyProfilePage = lazy(() => import("./pages/my-profile/MyProfilePage"));
 
 const queryClient = new QueryClient();
 
 const router = createBrowserRouter([
   {
-    // The AppLayout component will now handle the initial auth check and loading state
     path: "/",
     element: <AppLayout />,
     children: [
       // --- Protected Routes ---
-      // These routes are children of ProtectedRoute
       {
         element: <ProtectedRoute />,
         children: [
           {
-            path: "/", // Matches the root path
-            element: <SidebarLayout />,
+            path: "/",
+            // Wrap the Layout in Suspense too if it's large
+            element: (
+              <Suspense fallback={<Loading />}>
+                <SidebarLayout />
+              </Suspense>
+            ),
             children: [
               {
                 path: "/",
-                element: <Dashboard />,
+                element: (
+                  <Suspense fallback={<Loading />}>
+                    <Dashboard />
+                  </Suspense>
+                ),
               },
               {
                 path: "/departments",
-                element: <DepartmentPage />,
+                element: (
+                  <Suspense fallback={<Loading />}>
+                    <DepartmentPage />
+                  </Suspense>
+                ),
               },
               {
                 path: "/admins",
-                element: <AdminPage />,
+                element: (
+                  <Suspense fallback={<Loading />}>
+                    <AdminPage />
+                  </Suspense>
+                ),
               },
-              // {
-              //   path: "/profile",
-              //   element: <ProfilePage />,
-              // },
               {
                 path: "/my-profile",
-                element: <MyProfilePage />,
+                element: (
+                  <Suspense fallback={<Loading />}>
+                    <MyProfilePage />
+                  </Suspense>
+                ),
               },
             ],
           },
         ],
       },
       // --- Public Routes ---
-      // These routes are children of PublicRoute
       {
         element: <PublicRoute />,
         children: [
           {
             path: "login",
-            element: <LoginPage />,
+            element: (
+              <Suspense fallback={<Loading />}>
+                <LoginPage />
+              </Suspense>
+            ),
           },
           {
             path: "register",
-            element: <RegisterPage />,
+            element: (
+              <Suspense fallback={<Loading />}>
+                <RegisterPage />
+              </Suspense>
+            ),
           },
         ],
       },

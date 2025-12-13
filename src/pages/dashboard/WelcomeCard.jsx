@@ -26,9 +26,6 @@ const WelcomeCard = () => {
             great day.
           </p>
         </div>
-
-        {/* Action button */}
-        {/* <StylishDashButton /> */}
       </div>
 
       {/* Character illustration placeholder */}

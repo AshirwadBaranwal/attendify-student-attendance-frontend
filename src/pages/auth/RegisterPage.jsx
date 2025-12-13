@@ -1,9 +1,18 @@
-import React, { useState, useCallback, memo, useEffect } from "react";
+import React, {
+  useState,
+  useCallback,
+  memo,
+  useEffect,
+  lazy,
+  Suspense,
+} from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
-import OTPModal from "@/components/auth/OTPModal";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
+// 1. Lazy Import the Modal
+const OTPModal = lazy(() => import("@/components/auth/OTPModal"));
+
 import { useDispatch, useSelector } from "react-redux";
 import {
   register as registerUser,
@@ -27,10 +36,18 @@ const registerSchema = z
     path: ["confirmPassword"],
   });
 
-// Memoized components to prevent unnecessary re-renders
+// --- Optimized Components ---
+
 const LogoSection = memo(() => (
   <div className="absolute top-8 left-8 space-x-2 flex items-center justify-center">
-    <img src="/logo.png" alt="Attendify" className="w-6 h-6" />
+    {/* Added dimensions to prevent CLS */}
+    <img
+      src="/logo.png"
+      alt="Attendify"
+      className="w-6 h-6"
+      width="24"
+      height="24"
+    />
     <span className="text-xl font-semibold text-gray-100">Attendify</span>
   </div>
 ));
@@ -38,11 +55,18 @@ const LogoSection = memo(() => (
 const LeftSideImage = memo(() => (
   <div className="max-h-screen overflow-hidden hidden md:flex md:w-1/2 items-center justify-center bg-primary">
     <LogoSection />
-    <img src="/registerpageimage.svg" alt="Login Visual" className="h-5/6" />
+    {/* Added LCP optimization & dimensions */}
+    <img
+      src="/registerpageimage.svg"
+      alt="Register Visual"
+      className="h-5/6 w-auto object-contain"
+      width="600"
+      height="800"
+      fetchPriority="high"
+    />
   </div>
 ));
 
-// Added dark mode text colors
 const PageHeader = memo(() => (
   <div className="text-center mb-6">
     <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -54,7 +78,6 @@ const PageHeader = memo(() => (
   </div>
 ));
 
-// Optimized input field component with Dark Mode support
 const InputField = memo(
   ({
     id,
@@ -69,11 +92,15 @@ const InputField = memo(
     className = "",
   }) => (
     <div className={className}>
-      <label className="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">
+      <label
+        htmlFor={id} // Added htmlFor for accessibility
+        className="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200"
+      >
         {label}
       </label>
       <div className="relative">
         <input
+          id={id} // Ensure ID matches htmlFor
           type={isPassword && showPassword ? "text" : type}
           {...register(id)}
           className="w-full rounded-md px-4 py-2 outline-none transition duration-200 ease-in-out
@@ -98,7 +125,6 @@ const InputField = memo(
   )
 );
 
-// Custom Button component
 const Button = memo(
   ({ children, disabled, type = "button", className, ...props }) => (
     <button
@@ -132,25 +158,21 @@ export default function RegisterPage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  // Get state from Redux
   const { registering, verifying, registeredEmail } = useSelector(
     (state) => state.user
   );
 
-  // Open OTP modal when registration is successful
   useEffect(() => {
     if (registeredEmail) {
       setIsModalOpen(true);
     }
   }, [registeredEmail]);
 
-  // Close modal and clear any errors
-  const closeModal = () => {
+  const closeModal = useCallback(() => {
     setIsModalOpen(false);
     dispatch(clearError());
-  };
+  }, [dispatch]);
 
-  // React Hook Form setup
   const {
     register,
     handleSubmit,
@@ -207,15 +229,12 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
-      {/* Left Side Image */}
       <LeftSideImage />
 
-      {/* Right Side Form - Added dark:bg-gray-950 */}
       <div className="max-h-screen overflow-y-auto w-full md:w-1/2 flex flex-col justify-center items-center px-6 bg-gray-100 dark:bg-gray-950 transition-colors duration-200">
         <PageHeader />
 
         <div className="w-full max-w-lg space-y-4 rounded-xl p-8">
-          {/* Name Field */}
           <InputField
             id="name"
             label="Full Name"
@@ -225,7 +244,6 @@ export default function RegisterPage() {
             placeholder="Your name"
           />
 
-          {/* Email Field */}
           <InputField
             id="email"
             label="Email"
@@ -235,7 +253,6 @@ export default function RegisterPage() {
             placeholder="you@example.com"
           />
 
-          {/* Phone Field */}
           <InputField
             id="phone"
             label="Phone"
@@ -245,7 +262,6 @@ export default function RegisterPage() {
             placeholder="Your phone number"
           />
 
-          {/* Password Fields Container */}
           <div className="flex items-center gap-5">
             <InputField
               id="password"
@@ -257,7 +273,7 @@ export default function RegisterPage() {
               showPassword={showPassword}
               onTogglePassword={togglePassword}
               isPassword={true}
-              className="w-1/2" // Explicit width for the flex child
+              className="w-1/2"
             />
 
             <InputField
@@ -267,11 +283,10 @@ export default function RegisterPage() {
               register={register}
               error={errors.confirmPassword}
               placeholder="••••••••"
-              className="w-1/2" // Explicit width for the flex child
+              className="w-1/2"
             />
           </div>
 
-          {/* Submit Button */}
           <Button
             type="button"
             onClick={handleSubmit(onSubmit)}
@@ -288,22 +303,25 @@ export default function RegisterPage() {
             )}
           </Button>
 
-          {/* Login Link */}
           <LoginLink />
         </div>
       </div>
 
-      {/* OTP Modal */}
-      <OTPModal
-        isOpen={isModalOpen}
-        onClose={closeModal}
-        useCase="register"
-        onOtpChange={handleOtpChange}
-        onVerify={handleVerifyOtp}
-        onResend={handleResendOtp}
-        isVerifying={verifying}
-        email={registeredEmail}
-      />
+      {/* 2. Wrap Modal in Suspense */}
+      <Suspense fallback={null}>
+        {isModalOpen && (
+          <OTPModal
+            isOpen={isModalOpen}
+            onClose={closeModal}
+            useCase="register"
+            onOtpChange={handleOtpChange}
+            onVerify={handleVerifyOtp}
+            onResend={handleResendOtp}
+            isVerifying={verifying}
+            email={registeredEmail}
+          />
+        )}
+      </Suspense>
     </div>
   );
 }

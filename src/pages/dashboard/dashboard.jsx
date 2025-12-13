@@ -1,7 +1,6 @@
 import Header from "@/components/global/Header";
 import React from "react";
 import WelcomeCard from "./WelcomeCard";
-import Schedule from "./Schedule";
 
 const Dashboard = () => {
   return (

@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback, lazy, Suspense } from "react";
 import { useSelector } from "react-redux";
 import {
   useDeleteDepartment,
@@ -10,17 +10,39 @@ import Header from "@/components/global/Header";
 import TableSkeleton from "@/components/global/TableLoading";
 import { DataTable } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
-
-// Feature Components
-import { DepartmentModal } from "./departmentModal";
 import { getDepartmentColumns } from "./DepartmentColumns";
-import { ConfirmDeleteModal } from "@/components/global/ConfirmDeleteModal";
+
+// 1. Lazy Import Modals (Named Exports)
+// We use .then() to handle the named export "{ DepartmentModal }"
+const DepartmentModal = lazy(() =>
+  import("./departmentModal").then((module) => ({
+    default: module.DepartmentModal,
+  }))
+);
+
+const ConfirmDeleteModal = lazy(() =>
+  import("@/components/global/ConfirmDeleteModal").then((module) => ({
+    default: module.ConfirmDeleteModal,
+  }))
+);
+
+// 2. Move static data outside component
+const SKELETON_COLUMNS = [
+  "Sl No.",
+  "Department Name",
+  "Duration",
+  "Admin",
+  "Created At",
+  "HOD Name",
+  "HOD Phone",
+  "Actions",
+];
 
 const DepartmentPage = () => {
   const { user } = useSelector((state) => state.user);
-  const collegeId = user?.collegeAdmin?.collegeId._id;
+  // Added optional chaining (?._id) for safety
+  const collegeId = user?.collegeAdmin?.collegeId?._id;
 
-  // --- Unified Modal State ---
   const [modalState, setModalState] = useState({
     type: null, // 'create' | 'update' | 'delete'
     data: null,
@@ -37,23 +59,28 @@ const DepartmentPage = () => {
   const { mutate: deleteDepartment, isPending: isDeleting } =
     useDeleteDepartment();
 
-  // --- Handlers ---
-  const handleClose = () => setModalState({ type: null, data: null });
+  // --- Optimized Handlers (useCallback) ---
+  const handleClose = useCallback(() => {
+    setModalState({ type: null, data: null });
+  }, []);
 
-  const handleCreate = () => setModalState({ type: "create", data: null });
+  const handleCreate = useCallback(() => {
+    setModalState({ type: "create", data: null });
+  }, []);
 
-  const handleUpdate = (department) =>
+  const handleUpdate = useCallback((department) => {
     setModalState({ type: "update", data: department });
+  }, []);
 
-  const handleConfirmDelete = (department) =>
+  const handleConfirmDelete = useCallback((department) => {
     setModalState({ type: "delete", data: department });
+  }, []);
 
   const executeDelete = () => {
     if (!modalState.data) return;
 
     deleteDepartment(modalState.data._id, {
       onSuccess: () => {
-        // toast.success("Department deleted successfully");
         handleClose();
       },
     });
@@ -61,28 +88,15 @@ const DepartmentPage = () => {
 
   // --- Columns Configuration ---
   const columns = useMemo(
-    () =>
-      getDepartmentColumns(
-        handleUpdate, // onEdit
-        handleConfirmDelete // onDelete
-      ),
-    []
+    () => getDepartmentColumns(handleUpdate, handleConfirmDelete),
+    [handleUpdate, handleConfirmDelete] // Dependencies are now stable
   );
-
-  const skeletonColumns = [
-    "Sl No.",
-    "Department Name",
-    "Duration",
-    "Admin",
-    "Created At",
-    "HOD Name",
-    "HOD Phone",
-    "Actions",
-  ];
 
   if (isError) {
     return (
-      <div className="p-5 text-red-500">An error occurred: {error.message}</div>
+      <div className="p-5 text-red-500">
+        An error occurred: {error?.message}
+      </div>
     );
   }
 
@@ -95,7 +109,7 @@ const DepartmentPage = () => {
         </div>
 
         {isLoading ? (
-          <TableSkeleton ColumnsArray={skeletonColumns} />
+          <TableSkeleton ColumnsArray={SKELETON_COLUMNS} />
         ) : (
           <DataTable
             columns={columns}
@@ -108,27 +122,32 @@ const DepartmentPage = () => {
         )}
       </div>
 
-      {/* --- Modals --- */}
+      {/* --- Modals (Lazy Loaded) --- */}
+      {modalState.type && (
+        <Suspense fallback={null}>
+          {(modalState.type === "create" || modalState.type === "update") && (
+            <DepartmentModal
+              open={true}
+              onClose={handleClose}
+              collegeId={collegeId}
+              action={modalState.type === "create" ? "create" : "update"}
+              initialData={modalState.data}
+            />
+          )}
 
-      {/* Create / Update Modal */}
-      <DepartmentModal
-        open={modalState.type === "create" || modalState.type === "update"}
-        onClose={handleClose}
-        collegeId={collegeId}
-        action={modalState.type === "create" ? "create" : "update"}
-        initialData={modalState.data}
-      />
-
-      {/* Universal Delete (With Validation) */}
-      <ConfirmDeleteModal
-        isOpen={modalState.type === "delete"}
-        onClose={handleClose}
-        onConfirm={executeDelete}
-        isLoading={isDeleting}
-        title={`Delete ${modalState.data?.name}?`}
-        validationString={modalState.data?.name}
-        description="This action cannot be undone. This will permanently delete the department and its associated data."
-      />
+          {modalState.type === "delete" && (
+            <ConfirmDeleteModal
+              isOpen={true}
+              onClose={handleClose}
+              onConfirm={executeDelete}
+              isLoading={isDeleting}
+              title={`Delete ${modalState.data?.name}?`}
+              validationString={modalState.data?.name}
+              description="This action cannot be undone. This will permanently delete the department and its associated data."
+            />
+          )}
+        </Suspense>
+      )}
     </div>
   );
 };
