@@ -10,7 +10,7 @@ import Header from "@/components/global/Header";
 import TableSkeleton from "@/components/global/TableLoading";
 import { DataTable } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
-import { getAdminColumns } from "./AdminColumns";
+import { getAdminColumns } from "./adminColumns";
 
 // Note: If these are Named Exports (export const ...), we use this .then() syntax
 const AdminModal = lazy(() =>
