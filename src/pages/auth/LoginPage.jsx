@@ -9,7 +9,7 @@ import React, {
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Eye, EyeOff, Loader2 } from "lucide-react"; // Removed unused AlertCircle
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   login,
@@ -19,8 +19,9 @@ import {
 } from "@/redux/features/user/userSlice";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import OptimizedImage from "@/components/global/OptimisedImage";
 
-// 1. Lazy Load Modals (Saves bundle size on initial load)
+// 1. Lazy Load Modals
 const OTPModal = lazy(() => import("@/components/auth/OTPModal"));
 const ForgotPasswordModal = lazy(() =>
   import("@/components/auth/ForgotPasswordModal")
@@ -36,33 +37,38 @@ const loginSchema = z.object({
 
 const LogoSection = memo(() => (
   <div className="absolute top-8 left-8 space-x-2 flex items-center justify-center">
-    {/* Added explicit width/height to prevent Layout Shifts */}
-    <img
-      src="/logo.png"
-      alt="Attendify"
-      className="w-6 h-6"
-      width="24"
-      height="24"
-    />
+    {/* Wrapper ensures strict size (24px) */}
+    <div className="w-6 h-6">
+      <OptimizedImage
+        src="/logo.png"
+        alt="Attendify"
+        width={24}
+        height={24}
+        // Logo is small but critical for layout stability
+        priority={true}
+      />
+    </div>
     <span className="text-xl font-semibold text-gray-100">Attendify</span>
   </div>
 ));
 
 const LeftSideImage = memo(() => (
-  <div className="max-h-screen overflow-hidden hidden md:flex md:w-1/2 items-center justify-center bg-primary">
+  <div className="max-h-screen overflow-hidden hidden md:flex md:w-1/2 items-center justify-center bg-primary relative">
     <LogoSection />
-    {/* 1. fetchpriority="high": Tells browser this is important (LCP optimization)
-       2. width/height: Prevents layout shift
-       3. alt: Good for accessibility
-    */}
-    <img
-      src="/loginpageimage.svg"
-      alt="Login Visual"
-      className="h-5/6 w-auto object-contain"
-      width="600" // Approx width of your SVG
-      height="800" // Approx height of your SVG
-      fetchPriority="high"
-    />
+
+    {/* Container to control the height of the illustration (5/6 of screen) */}
+    <div className="h-5/6 w-full flex items-center justify-center p-8">
+      <OptimizedImage
+        src="/loginpageimage.svg"
+        alt="Login Visual"
+        width={600}
+        height={800}
+        priority={true}
+        // CRITICAL: We use '!' to override the default 'object-cover' and 'w-full'
+        // because illustrations should usually be 'contained' so they aren't cropped.
+        className="!w-auto !h-full !object-contain"
+      />
+    </div>
   </div>
 ));
 
@@ -286,7 +292,6 @@ export default function Login() {
         </div>
       </div>
 
-      {/* 2. Wrap Modals in Suspense for safe lazy loading */}
       <Suspense fallback={null}>
         {isModalOpen && (
           <OTPModal

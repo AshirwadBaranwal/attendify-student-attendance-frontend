@@ -12,11 +12,6 @@ import { DataTable } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
 import { getAdminColumns } from "./AdminColumns";
 
-// 2. Remove static imports for Modals
-// import { AdminModal } from "./AdminCreateModal";
-// import { ConfirmDeleteModal } from "@/components/global/ConfirmDeleteModal";
-
-// 3. Lazy Import the Modals
 // Note: If these are Named Exports (export const ...), we use this .then() syntax
 const AdminModal = lazy(() =>
   import("./AdminCreateModal").then((module) => ({
@@ -59,9 +54,6 @@ const AdminPage = () => {
 
   const { mutate: deleteAdmin, isPending: isDeleting } = useDeleteAdmin();
 
-  // --- Optimized Handlers ---
-  // 4. Wrap handlers in useCallback.
-  // Without this, 'columns' regenerates on every render, defeating the purpose of useMemo.
   const handleClose = useCallback(
     () => setModalState({ type: null, data: null }),
     []
@@ -123,8 +115,6 @@ const AdminPage = () => {
         )}
       </div>
 
-      {/* 5. Wrap Modals in Suspense */}
-      {/* We only render Suspense if a modal is actually open to prevent flickering */}
       {modalState.type && (
         <Suspense fallback={null}>
           {/* Fallback is null because modals open over existing content */}

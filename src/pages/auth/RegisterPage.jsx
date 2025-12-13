@@ -10,18 +10,20 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
-// 1. Lazy Import the Modal
-const OTPModal = lazy(() => import("@/components/auth/OTPModal"));
-
 import { useDispatch, useSelector } from "react-redux";
+import { Link, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+
 import {
   register as registerUser,
   verifyOTP,
   resendOTP,
   clearError,
 } from "@/redux/features/user/userSlice";
-import { Link, useNavigate } from "react-router-dom";
-import { toast } from "sonner";
+import OptimizedImage from "@/components/global/OptimisedImage";
+
+// 1. Lazy Import the Modal
+const OTPModal = lazy(() => import("@/components/auth/OTPModal"));
 
 const registerSchema = z
   .object({
@@ -40,30 +42,37 @@ const registerSchema = z
 
 const LogoSection = memo(() => (
   <div className="absolute top-8 left-8 space-x-2 flex items-center justify-center">
-    {/* Added dimensions to prevent CLS */}
-    <img
-      src="/logo.png"
-      alt="Attendify"
-      className="w-6 h-6"
-      width="24"
-      height="24"
-    />
+    {/* Wrapper for fixed size */}
+    <div className="w-6 h-6">
+      <OptimizedImage
+        src="/logo.png"
+        alt="Attendify"
+        width={24}
+        height={24}
+        priority={true}
+      />
+    </div>
     <span className="text-xl font-semibold text-gray-100">Attendify</span>
   </div>
 ));
 
 const LeftSideImage = memo(() => (
-  <div className="max-h-screen overflow-hidden hidden md:flex md:w-1/2 items-center justify-center bg-primary">
+  <div className="max-h-screen overflow-hidden hidden md:flex md:w-1/2 items-center justify-center bg-primary relative">
     <LogoSection />
-    {/* Added LCP optimization & dimensions */}
-    <img
-      src="/registerpageimage.svg"
-      alt="Register Visual"
-      className="h-5/6 w-auto object-contain"
-      width="600"
-      height="800"
-      fetchPriority="high"
-    />
+
+    {/* Container controls the available space (5/6 height).
+        We use !object-contain to ensure the SVG isn't cropped
+    */}
+    <div className="h-5/6 w-full flex items-center justify-center p-8">
+      <OptimizedImage
+        src="/registerpageimage.svg"
+        alt="Register Visual"
+        width={600}
+        height={800}
+        priority={true} // High priority for LCP
+        className="!w-auto !h-full !object-contain"
+      />
+    </div>
   </div>
 ));
 
@@ -93,14 +102,14 @@ const InputField = memo(
   }) => (
     <div className={className}>
       <label
-        htmlFor={id} // Added htmlFor for accessibility
+        htmlFor={id}
         className="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200"
       >
         {label}
       </label>
       <div className="relative">
         <input
-          id={id} // Ensure ID matches htmlFor
+          id={id}
           type={isPassword && showPassword ? "text" : type}
           {...register(id)}
           className="w-full rounded-md px-4 py-2 outline-none transition duration-200 ease-in-out
@@ -307,7 +316,6 @@ export default function RegisterPage() {
         </div>
       </div>
 
-      {/* 2. Wrap Modal in Suspense */}
       <Suspense fallback={null}>
         {isModalOpen && (
           <OTPModal

@@ -4,6 +4,7 @@ import { Outlet } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchUser } from "@/redux/features/user/userSlice";
 import { Toaster } from "@/components/ui/sonner"; // Keep Toaster here
+import Loading from "./Loading";
 
 const AppLayout = () => {
   const dispatch = useDispatch();
@@ -19,12 +20,7 @@ const AppLayout = () => {
   if (loading) {
     return (
       <div className="flex h-screen w-full items-center justify-center">
-        <img
-          src="/logo.png"
-          alt="Attendify Loading..."
-          fetchPriority="high"
-          className="size-24 animate-pulse "
-        />
+        <Loading />
       </div>
     );
   }

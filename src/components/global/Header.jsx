@@ -1,6 +1,7 @@
 import React from "react";
 import { useSelector } from "react-redux";
 import { AnimatedThemeToggler } from "../ui/animated-theme-toggler";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 
 const Header = () => {
   const { user } = useSelector((state) => state.user);
@@ -18,14 +19,11 @@ const Header = () => {
       </div>
 
       <div className="flex gap-4 items-center">
-        <div className="flex items-center relative">
-          <div className="z-10 mr-2 size-11 rounded-full border-4 border-card bg-card overflow-hidden flex items-center justify-center shadow-sm ring-1 ring-primary/20">
-            <img
-              src={user?.collegeAdmin?.profilePicture}
-              className="size-10 object-cover"
-              alt="profile"
-            />
-          </div>
+        <div className="flex items-center relative gap-4">
+          <Avatar className="size-10 border-2">
+            <AvatarImage src={user?.collegeAdmin?.profilePicture} />
+            <AvatarFallback>PP</AvatarFallback>
+          </Avatar>
 
           <div>
             <p className="text-sm font-medium text-foreground">

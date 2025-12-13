@@ -13,6 +13,7 @@ import { Form } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { fetchUser } from "@/redux/features/user/userSlice";
 import axiosClient from "@/utils/axios/axios";
+import OptimizedImage from "@/components/global/OptimisedImage";
 
 // College form validation schema
 const collegeSchema = z.object({
@@ -46,7 +47,7 @@ const AddCollegePage = () => {
       address: "",
     },
   });
-  // If loading, show nothing (or could add a loading spinner here)
+
   if (loading) {
     return null;
   }
@@ -75,27 +76,51 @@ const AddCollegePage = () => {
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
       {/* Left Side Image */}
-      <div className="max-h-screen overflow-hidden hidden md:flex md:w-1/2 items-center justify-center">
-        <div className="absolute top-8 left-8 space-x-2 flex items-center justify-center">
-          <img src="/logo.png" alt="Attendify" className="w-6 h-6" />
-          <span className="text-xl font-semibold text-gray-100">Attendify</span>
+      {/* Added 'relative' so the logo absolute positioning works correctly relative to this container */}
+      <div className="relative max-h-screen overflow-hidden hidden md:flex md:w-1/2 items-center justify-center bg-gray-50">
+        {/* Floating Logo Header */}
+        <div className="absolute top-8 left-8 space-x-2 flex items-center justify-center z-10">
+          {/* Wrapper for the small logo (w-6 h-6) */}
+          <div className="w-6 h-6">
+            <OptimizedImage
+              src="/logo.png"
+              alt="Attendify Logo"
+              width={32}
+              height={32}
+            />
+          </div>
+          {/* Note: Changed text color to gray-800 for better visibility if image is light,
+              or keep gray-100 if image is dark. */}
+          <span className="text-xl font-semibold text-gray-800 drop-shadow-md">
+            Attendify
+          </span>
         </div>
-        <img
-          src="/Auth_Image.png"
-          alt="College Registration Visual"
-          className=""
-        />
+
+        {/* Main Background Image */}
+        {/* We use h-full to override the default h-auto, ensuring it covers the full pane height */}
+        <div className="w-full h-full">
+          <OptimizedImage
+            src="/Auth_Image.png"
+            alt="College Registration Visual"
+            width={800} // Provide estimate dimensions for aspect ratio
+            height={1000}
+            priority={true} // Priority loading for the LCP (Largest Contentful Paint) image
+            className="h-full" // CSS override to make it fill height
+          />
+        </div>
       </div>
 
       {/* Right Side Form */}
-      <div className="max-h-screen overflow-y-auto w-full md:w-1/2 flex flex-col justify-center items-center px-6 bg-gray-100">
+      <div className="max-h-screen overflow-y-auto w-full md:w-1/2 flex flex-col justify-center items-center px-6 bg-gray-100 py-10">
         <h2 className="text-2xl font-bold">Register Your College</h2>
-        <p className="mb-6">Attendify: Your smart attendance partner</p>
+        <p className="mb-6 text-gray-500">
+          Attendify: Your smart attendance partner
+        </p>
 
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
-            className="w-full max-w-lg space-y-4 rounded-xl p-8"
+            className="w-full max-w-lg space-y-4 rounded-xl p-8 bg-white shadow-sm"
           >
             <div>
               <label className="block mb-1 text-sm font-medium">

@@ -22,6 +22,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import OptimizedImage from "./OptimisedImage";
 
 // --- Menu Configurations ---
 const menuItems = [
@@ -140,10 +141,22 @@ const Sidebar = () => {
         - border-sidebar-border: Sets the border color
       */}
       <aside className="h-screen w-20 bg-sidebar text-sidebar-foreground border-r border-sidebar-border flex flex-col items-center shrink-0 select-none">
-        {/* Header - UPDATED border color */}
         <div className="flex items-center justify-center h-16 w-full border-b border-sidebar-border shrink-0">
-          {/* Ensure your logo SVG handles 'currentColor' or looks good on the sidebar bg */}
-          <img src="/logo.png" alt="logo" className="w-8 h-8" />
+          {/* Wrapper div:
+             We define the strict size (w-8 h-8) here.
+             The OptimizedImage inside (which has w-full) will fill this wrapper.
+          */}
+          <div className="w-8 h-8">
+            <OptimizedImage
+              src="/logo.png"
+              alt="Attendify Logo"
+              // Provide intrinsic dimensions for aspect ratio (even if small)
+              width={100}
+              height={100}
+              // Logos are critical for LCP, so we prioritize loading
+              priority={true}
+            />
+          </div>
         </div>
 
         {/* Navigation Menu */}

@@ -1,12 +1,16 @@
-// 3. Create a simple Loading component (or use a Spinner if you have one)
+import OptimizedImage from "./OptimisedImage";
+
 const Loading = () => (
   <div className="flex h-screen w-full items-center justify-center">
-    <img
-      src="/logo.png"
-      alt="Attendify Loading..."
-      fetchPriority="high"
-      className="size-24 animate-pulse "
-    />
+    <div className="size-24 animate-pulse">
+      <OptimizedImage
+        src="/logo.png"
+        alt="Attendify Loading..."
+        width={500}
+        height={500}
+        priority={true}
+      />
+    </div>
   </div>
 );
 
