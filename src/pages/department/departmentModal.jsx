@@ -63,7 +63,7 @@ export function DepartmentModal({
     };
     if (action === "create") {
       createDepartment(payload, {
-        onSuccess: (data) => {
+        onSuccess: () => {
           form.reset({
             name: "",
             duration: 1,
@@ -81,7 +81,7 @@ export function DepartmentModal({
           data: payload,
         },
         {
-          onSuccess: (data) => {
+          onSuccess: () => {
             onClose();
           },
         }

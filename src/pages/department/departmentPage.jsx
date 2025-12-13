@@ -10,7 +10,7 @@ import Header from "@/components/global/Header";
 import TableSkeleton from "@/components/global/TableLoading";
 import { DataTable } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
-import { getDepartmentColumns } from "./DepartmentColumns";
+import { getDepartmentColumns } from "./departmentColumns";
 
 // 1. Lazy Import Modals (Named Exports)
 // We use .then() to handle the named export "{ DepartmentModal }"
