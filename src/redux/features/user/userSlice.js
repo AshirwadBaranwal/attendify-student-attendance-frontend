@@ -204,6 +204,48 @@ export const updateCollegeImage = createAsyncThunk(
   }
 );
 
+export const updateCollegeLetterHead = createAsyncThunk(
+  "user/updateCollegeLetterHead",
+  async ({ imageFile }, thunkAPI) => {
+    try {
+      const formData = new FormData();
+      formData.append("letterHeadImage", imageFile);
+
+      const res = await axiosClient.patch(
+        "/college/college-letterhead",
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
+
+      toast.success(res?.data?.message || "College letter head updated!");
+      return res.data.data;
+    } catch (err) {
+      return handleError(err, "Failed to update college letter head", thunkAPI);
+    }
+  }
+);
+
+export const updateCollegeLogo = createAsyncThunk(
+  "user/updateCollegeLogo",
+  async ({ imageFile }, thunkAPI) => {
+    try {
+      const formData = new FormData();
+      formData.append("logoImage", imageFile);
+
+      const res = await axiosClient.patch("/college/college-logo", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      toast.success(res?.data?.message || "College logo updated!");
+      return res.data.data;
+    } catch (err) {
+      return handleError(err, "Failed to update college logo", thunkAPI);
+    }
+  }
+);
+
 // ============================================================================
 // SLICE
 // ============================================================================
@@ -233,6 +275,14 @@ const initialState = {
   collegeImage: {
     updatingImage: false,
     orgCollegeImage: null, // Fallback for rollback
+  },
+  collegeLetterHead: {
+    updatingletterHeadImage: false,
+    orgLetterHeadImage: null, // Fallback for rollback
+  },
+  collegeLogo: {
+    updatingLogo: false,
+    orgLogo: null, // Fallback for rollback
   },
 };
 
@@ -386,6 +436,62 @@ const userSlice = createSlice({
             state.collegeImage.orgCollegeImage;
         }
         state.collegeImage.orgCollegeImage = null;
+      })
+
+      // --- Update College letterhead (Optimistic) ---
+      .addCase(updateCollegeLetterHead.pending, (state, action) => {
+        state.collegeLetterHead.updatingletterHeadImage = true;
+        state.error = null;
+        if (state.user?.collegeAdmin?.collegeId) {
+          state.collegeLetterHead.orgLetterHeadImage =
+            state.user.collegeAdmin.collegeId.letterHead;
+          state.user.collegeAdmin.collegeId.letterHead =
+            action.meta.arg.previewUrl;
+        }
+      })
+      .addCase(updateCollegeLetterHead.fulfilled, (state, action) => {
+        state.collegeLetterHead.updatingletterHeadImage = false;
+        if (state.user?.collegeAdmin?.collegeId) {
+          state.user.collegeAdmin.collegeId.letterHead =
+            action.payload.letterHead;
+        }
+        state.collegeLetterHead.orgLetterHeadImage = null;
+      })
+      .addCase(updateCollegeLetterHead.rejected, (state, action) => {
+        state.collegeLetterHead.updatingletterHeadImage = false;
+        state.error = action.payload;
+        if (
+          state.user?.collegeAdmin?.collegeId &&
+          state.collegeLetterHead.orgLetterHeadImage
+        ) {
+          state.user.collegeAdmin.collegeId.letterHead =
+            state.collegeLetterHead.orgLetterHeadImage;
+        }
+        state.collegeLetterHead.orgLetterHeadImage = null;
+      })
+      // --- Update College logo (Optimistic) ---
+      .addCase(updateCollegeLogo.pending, (state, action) => {
+        state.collegeLogo.updatingLogo = true;
+        state.error = null;
+        if (state.user?.collegeAdmin?.collegeId) {
+          state.collegeLogo.orgLogo = state.user.collegeAdmin.collegeId.logo;
+          state.user.collegeAdmin.collegeId.logo = action.meta.arg.previewUrl;
+        }
+      })
+      .addCase(updateCollegeLogo.fulfilled, (state, action) => {
+        state.collegeLogo.updatingLogo = false;
+        if (state.user?.collegeAdmin?.collegeId) {
+          state.user.collegeAdmin.collegeId.logo = action.payload.logo;
+        }
+        state.collegeLogo.orgLogo = null;
+      })
+      .addCase(updateCollegeLogo.rejected, (state, action) => {
+        state.collegeLogo.updatingLogo = false;
+        state.error = action.payload;
+        if (state.user?.collegeAdmin?.collegeId && state.collegeLogo.orgLogo) {
+          state.user.collegeAdmin.collegeId.logo = state.collegeLogo.orgLogo;
+        }
+        state.collegeLogo.orgLogo = null;
       });
   },
 });

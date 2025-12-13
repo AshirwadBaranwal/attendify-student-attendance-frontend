@@ -1,4 +1,3 @@
-import StylishDashButton from "@/components/common/StylishDashButton";
 import React from "react";
 import { useSelector } from "react-redux";
 
@@ -20,7 +19,7 @@ const WelcomeCard = () => {
         {/* Greeting */}
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-white mb-2">
-            Good Morning {user?.collegeAdmin?.name.split(" ")[0]} !
+            Good Morning Mr. {user?.collegeAdmin?.name} !
           </h1>
           <p className="text-white/90 text-base leading-relaxed">
             Welcome back to your dashboard. We're here to <br /> help you have a
@@ -29,7 +28,7 @@ const WelcomeCard = () => {
         </div>
 
         {/* Action button */}
-        <StylishDashButton />
+        {/* <StylishDashButton /> */}
       </div>
 
       {/* Character illustration placeholder */}
@@ -43,6 +42,7 @@ const WelcomeCard = () => {
         className="absolute top-0 h-80 right-0"
         src="/WelcomeImage.png"
         alt="Welcome"
+        fetchPriority="high"
       />
 
       {/* Additional decorative elements */}

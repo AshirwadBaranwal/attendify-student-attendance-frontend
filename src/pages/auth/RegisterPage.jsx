@@ -42,14 +42,19 @@ const LeftSideImage = memo(() => (
   </div>
 ));
 
+// Added dark mode text colors
 const PageHeader = memo(() => (
   <div className="text-center mb-6">
-    <h2 className="text-2xl font-bold">Create Your Account On Attendify</h2>
-    <p>Attendify: Your smart attendance partner</p>
+    <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+      Create Your Account On Attendify
+    </h2>
+    <p className="text-gray-600 dark:text-gray-400">
+      Attendify: Your smart attendance partner
+    </p>
   </div>
 ));
 
-// Optimized input field component
+// Optimized input field component with Dark Mode support
 const InputField = memo(
   ({
     id,
@@ -64,18 +69,25 @@ const InputField = memo(
     className = "",
   }) => (
     <div className={className}>
-      <label className="block mb-1 text-sm font-medium">{label}</label>
+      <label className="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">
+        {label}
+      </label>
       <div className="relative">
         <input
           type={isPassword && showPassword ? "text" : type}
           {...register(id)}
-          className="w-full rounded-md border border-gray-300 px-4 py-2 outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition duration-200 ease-in-out"
+          className="w-full rounded-md px-4 py-2 outline-none transition duration-200 ease-in-out
+            border border-gray-300 dark:border-gray-700
+            bg-white dark:bg-gray-800
+            text-gray-900 dark:text-gray-100
+            placeholder-gray-400 dark:placeholder-gray-500
+            focus:ring-2 focus:ring-primary focus:border-transparent"
           placeholder={placeholder}
         />
         {isPassword && (
           <span
             onClick={onTogglePassword}
-            className="absolute right-3 top-2.5 cursor-pointer text-gray-500"
+            className="absolute right-3 top-2.5 cursor-pointer text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
           >
             {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
           </span>
@@ -86,7 +98,7 @@ const InputField = memo(
   )
 );
 
-// Custom Button component to match your Button component
+// Custom Button component
 const Button = memo(
   ({ children, disabled, type = "button", className, ...props }) => (
     <button
@@ -101,9 +113,12 @@ const Button = memo(
 );
 
 const LoginLink = memo(() => (
-  <p className="text-center text-sm text-gray-600">
+  <p className="text-center text-sm text-gray-600 dark:text-gray-400">
     Already have an account?{" "}
-    <Link to="/login" className="text-primary hover:underline">
+    <Link
+      to="/login"
+      className="text-primary hover:underline dark:text-primary/90"
+    >
       Login
     </Link>
   </p>
@@ -118,7 +133,7 @@ export default function RegisterPage() {
   const navigate = useNavigate();
 
   // Get state from Redux
-  const { registering, verifying, error, registeredEmail } = useSelector(
+  const { registering, verifying, registeredEmail } = useSelector(
     (state) => state.user
   );
 
@@ -135,15 +150,15 @@ export default function RegisterPage() {
     dispatch(clearError());
   };
 
-  // React Hook Form setup with optimized mode
+  // React Hook Form setup
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(registerSchema),
-    mode: "onBlur", // Only validate on blur to reduce re-renders
-    reValidateMode: "onChange", // Re-validate on change after first validation
+    mode: "onBlur",
+    reValidateMode: "onChange",
     defaultValues: {
       name: "",
       email: "",
@@ -153,46 +168,38 @@ export default function RegisterPage() {
     },
   });
 
-  // Memoized password toggle handler
   const togglePassword = useCallback(() => {
     setShowPassword((prev) => !prev);
   }, []);
 
-  // Handle OTP input change
   const handleOtpChange = useCallback((otp) => {
     setOtpValue(otp);
   }, []);
 
-  // Handle OTP verification
   const handleVerifyOtp = useCallback(() => {
     if (otpValue.length === 6 && registeredEmail) {
       dispatch(verifyOTP({ email: registeredEmail, otp: otpValue }))
         .unwrap()
         .then(() => {
-          // THIS BLOCK IS LIKELY NOT RUNNING
           navigate("/");
         })
         .catch((err) => {
-          // Error is handled by the reducer and displayed in the UI
+          // Error handling
         });
     } else {
       toast.error("Please enter a valid 6-digit OTP");
     }
   }, [otpValue, registeredEmail, dispatch, navigate]);
 
-  // Handle resend OTP
   const handleResendOtp = useCallback(() => {
     if (registeredEmail) {
       dispatch(resendOTP(registeredEmail));
     }
   }, [registeredEmail, dispatch]);
 
-  // Submit handler for registration
   const onSubmit = useCallback(
     async (data) => {
-      // Remove confirmPassword as it's not needed for the API
       const { confirmPassword, ...registrationData } = data;
-
       dispatch(registerUser(registrationData));
     },
     [dispatch]
@@ -203,19 +210,11 @@ export default function RegisterPage() {
       {/* Left Side Image */}
       <LeftSideImage />
 
-      {/* Right Side Form */}
-      <div className="max-h-screen overflow-y-auto w-full md:w-1/2 flex flex-col justify-center items-center px-6 bg-gray-100">
+      {/* Right Side Form - Added dark:bg-gray-950 */}
+      <div className="max-h-screen overflow-y-auto w-full md:w-1/2 flex flex-col justify-center items-center px-6 bg-gray-100 dark:bg-gray-950 transition-colors duration-200">
         <PageHeader />
 
         <div className="w-full max-w-lg space-y-4 rounded-xl p-8">
-          {/* Error Alert */}
-          {/* {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative flex items-center" role="alert">
-              <AlertCircle className="h-5 w-5 mr-2" />
-              <span>{error?.message || "An error occurred during registration"}</span>
-            </div>
-          )} */}
-
           {/* Name Field */}
           <InputField
             id="name"
@@ -258,6 +257,7 @@ export default function RegisterPage() {
               showPassword={showPassword}
               onTogglePassword={togglePassword}
               isPassword={true}
+              className="w-1/2" // Explicit width for the flex child
             />
 
             <InputField
@@ -267,6 +267,7 @@ export default function RegisterPage() {
               register={register}
               error={errors.confirmPassword}
               placeholder="••••••••"
+              className="w-1/2" // Explicit width for the flex child
             />
           </div>
 

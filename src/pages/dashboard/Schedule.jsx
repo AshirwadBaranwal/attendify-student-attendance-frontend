@@ -68,7 +68,7 @@ const calendarDays = [
 
 const Schedule = () => {
   return (
-    <div className="w-full max-w-sm mx-auto bg-gray-50 p-4 space-y-8 rounded-lg">
+    <div className="w-full max-w-sm mx-auto p-4 space-y-8 rounded-lg">
       {/* Section 1: Schedule Calendar */}
       <div>
         <div className="flex items-center justify-between mb-4">

@@ -19,10 +19,6 @@ const Header = () => {
 
       <div className="flex gap-4 items-center">
         <div className="flex items-center relative">
-          <span className="absolute -left-21 z-5 bg-primary/10 text-primary text-xs font-medium p-1 rounded-l-full px-2 border-l border-t border-b border-primary/20">
-            {user?.role}
-          </span>
-
           <div className="z-10 mr-2 size-11 rounded-full border-4 border-card bg-card overflow-hidden flex items-center justify-center shadow-sm ring-1 ring-primary/20">
             <img
               src={user?.collegeAdmin?.profilePicture}

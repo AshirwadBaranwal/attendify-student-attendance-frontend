@@ -17,7 +17,9 @@ export const getAdminColumns = (onEdit, onDelete) => [
       return (
         <div>
           <div className="font-medium">{admin.name}</div>
-          <div className="text-sm text-gray-600">{admin.user.email}</div>
+          <div className="text-sm text-muted-foreground">
+            {admin.user.email}
+          </div>
         </div>
       );
     },

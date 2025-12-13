@@ -29,7 +29,7 @@ export const getDepartmentColumns = (onEdit, onDelete) => [
     header: "Admin",
     cell: ({ row }) =>
       row.original.adminId?.name || (
-        <p className="text-red-600">Not Assigned</p>
+        <p className="text-red-500">Not Assigned</p>
       ),
   },
   {
@@ -42,7 +42,7 @@ export const getDepartmentColumns = (onEdit, onDelete) => [
     header: "HOD Name",
     cell: ({ row }) =>
       row.original.headOfDepartment?.name || (
-        <p className="text-red-600">Not Assigned</p>
+        <p className="text-red-500">Not Assigned</p>
       ),
   },
   {

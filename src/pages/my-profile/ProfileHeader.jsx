@@ -7,60 +7,73 @@ import {
 import AvatarUploader from "@/components/global/AvatarUploader";
 
 const ProfileHeader = () => {
-  const { user } = useSelector((state) => state.user);
-  const isLoading = useSelector((state) => state.user.updatingProfilePicture);
-
   const dispatch = useDispatch();
 
-  // For profile Picture
+  // 1. SELECTORS: Split specific fields to prevent unnecessary re-renders
+  // Using specific paths prevents the "Profile" component from refreshing when "Banner" changes.
+  const profileImageSrc = useSelector(
+    (state) => state.user.user?.collegeAdmin?.profilePicture
+  );
+  const userInitials = useSelector(
+    (state) => state.user.user?.collegeAdmin?.name?.charAt(0) || "A"
+  );
+  const collegeImageSrc = useSelector(
+    (state) => state.user.user?.collegeAdmin?.collegeId?.image
+  );
+
+  // 2. LOADING STATES: Select them separately so one spinner doesn't trigger both
+  const isProfileLoading = useSelector(
+    (state) => state.user.updatingProfilePicture // Make sure this matches your Slice state name
+  );
+  const isBannerLoading = useSelector(
+    (state) => state.user.collegeImage?.updatingImage
+  );
+
+  // --- Handlers ---
 
   const handleProfileUpdate = (file) => {
     const previewUrl = URL.createObjectURL(file);
     dispatch(updateProfilePicture({ imageFile: file, previewUrl }));
   };
 
-  const profileImageSrc = user?.collegeAdmin?.profilePicture;
-  const userInitials = user?.collegeAdmin?.name?.charAt(0) || "A";
-
-  // For Banner
-
   const handleCollegeImageUpdate = (file) => {
     const previewUrl = URL.createObjectURL(file);
     dispatch(updateCollegeImage({ imageFile: file, previewUrl }));
   };
 
-  const collegeImageSrc = user?.collegeAdmin?.collegeId?.image;
-  const collegeInitials = user?.collegeAdmin?.name?.charAt(0) || "U";
-
   return (
+    // relative container
     <div className="relative">
       {/* Banner Section */}
       <div
-        className="w-full h-80 bg-cover bg-no-repeat bg-center  bg-gray-100 relative"
+        className="w-full h-80 bg-gray-100 relative overflow-hidden bg-cover bg-center bg-no-repeat "
         style={{ backgroundImage: `url(${collegeImageSrc})` }}
       >
-        <div className="absolute bottom-0 right-0 ">
+        {/* Banner Edit Button (Bottom Right) */}
+        {/* Fixed: w-15 is invalid in Tailwind by default. Changed to w-16. */}
+        <div className="absolute bottom-4 right-4 z-10">
           <AvatarUploader
-            containerClass="w-15 h-15"
+            containerClass="w-16 h-16"
             src={collegeImageSrc}
-            alt={user?.collegeAdmin?.name}
-            fallback={collegeInitials}
-            isLoading={isLoading}
+            alt="College Banner"
+            fallback="C" // Changed to "C" for College
+            isLoading={isBannerLoading} // Use specific loading state
             onFileSelect={handleCollegeImageUpdate}
-            maxSizeMB={2}
+            maxSizeMB={5} // Banners usually need larger size limits
           />
         </div>
       </div>
 
-      {/* Avatar Section Positioned Absolute */}
-      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2">
+      {/* Profile Avatar Section (Hanging Over) */}
+      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 z-20">
         <AvatarUploader
           src={profileImageSrc}
-          alt={user?.collegeAdmin?.name}
+          alt="Profile"
           fallback={userInitials}
-          isLoading={isLoading}
+          isLoading={isProfileLoading} // Use specific loading state
           onFileSelect={handleProfileUpdate}
           maxSizeMB={2}
+          containerClass="w-32 h-32 border-4 border-white shadow-md rounded-full bg-white"
         />
       </div>
     </div>
