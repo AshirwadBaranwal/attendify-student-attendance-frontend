@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchUser } from "@/redux/features/user/userSlice";
 import { Toaster } from "@/components/ui/sonner"; // Keep Toaster here
 import Loading from "./Loading";
+import OfflineModal from "./OfflineModal";
 
 const AppLayout = () => {
   const dispatch = useDispatch();
@@ -29,6 +30,7 @@ const AppLayout = () => {
   return (
     <>
       <Outlet />
+      <OfflineModal />
       <Toaster />
     </>
   );
