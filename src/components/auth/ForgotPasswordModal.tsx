@@ -1,4 +1,4 @@
-import React, { useState, useCallback, memo } from "react";
+import { useState, useCallback, memo } from "react";
 import { Button } from "../ui/button";
 import { Loader2, Mail } from "lucide-react";
 import { toast } from "sonner";
@@ -8,13 +8,22 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axiosClient from "@/utils/axios/axios";
+import type { AxiosError } from "axios";
+import type { ApiError } from "@/types";
 
 // Schema for email validation
 const emailSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
 });
 
-const ForgotPasswordModal = ({ isOpen, onClose }) => {
+type EmailFormData = z.infer<typeof emailSchema>;
+
+interface ForgotPasswordModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [showOTPModal, setShowOTPModal] = useState(false);
@@ -28,7 +37,7 @@ const ForgotPasswordModal = ({ isOpen, onClose }) => {
     handleSubmit,
     formState: { errors },
     reset,
-  } = useForm({
+  } = useForm<EmailFormData>({
     resolver: zodResolver(emailSchema),
     defaultValues: {
       email: "",
@@ -36,7 +45,7 @@ const ForgotPasswordModal = ({ isOpen, onClose }) => {
   });
 
   // Handle email submission
-  const onSubmit = useCallback(async (data) => {
+  const onSubmit = useCallback(async (data: EmailFormData) => {
     try {
       setIsLoading(true);
       setEmail(data.email);
@@ -48,7 +57,8 @@ const ForgotPasswordModal = ({ isOpen, onClose }) => {
 
       toast.success(response.data.message || "Reset code sent to your email");
       setShowOTPModal(true);
-    } catch (error) {
+    } catch (err) {
+      const error = err as AxiosError<ApiError>;
       toast.error(
         error.response?.data?.message ||
           error.message ||
@@ -78,7 +88,8 @@ const ForgotPasswordModal = ({ isOpen, onClose }) => {
       setResetToken(response?.data?.data?.resetToken || "");
       setShowOTPModal(false);
       setShowSetPasswordModal(true);
-    } catch (error) {
+    } catch (err) {
+      const error = err as AxiosError<ApiError>;
       toast.error(
         error.response?.data?.message ||
           error.message ||
@@ -100,7 +111,8 @@ const ForgotPasswordModal = ({ isOpen, onClose }) => {
       );
 
       toast.success(response.data.message || "New OTP sent to your email");
-    } catch (error) {
+    } catch (err) {
+      const error = err as AxiosError<ApiError>;
       toast.error(
         error.response?.data?.message || error.message || "Failed to resend OTP"
       );
@@ -207,6 +219,6 @@ const ForgotPasswordModal = ({ isOpen, onClose }) => {
       )}
     </>
   );
-};
+}
 
 export default memo(ForgotPasswordModal);

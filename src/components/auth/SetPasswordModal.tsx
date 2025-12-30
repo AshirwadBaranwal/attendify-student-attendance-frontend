@@ -1,5 +1,5 @@
-// SetPasswordModal.jsx
-import React, { useState, useCallback, memo } from "react";
+// SetPasswordModal.tsx
+import { useState, useCallback, memo } from "react";
 import { Button } from "../ui/button";
 import { Loader2, Eye, EyeOff, Lock } from "lucide-react";
 import { toast } from "sonner";
@@ -7,6 +7,8 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axiosClient from "@/utils/axios/axios";
+import type { AxiosError } from "axios";
+import type { ApiError } from "@/types";
 
 // Schema for password validation
 const passwordSchema = z
@@ -19,7 +21,21 @@ const passwordSchema = z
     path: ["confirmPassword"],
   });
 
-const SetPasswordModal = ({ isOpen, onClose, resetToken, onSuccess }) => {
+type PasswordFormData = z.infer<typeof passwordSchema>;
+
+interface SetPasswordModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  resetToken: string;
+  onSuccess?: () => void;
+}
+
+function SetPasswordModal({
+  isOpen,
+  onClose,
+  resetToken,
+  onSuccess,
+}: SetPasswordModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -29,7 +45,7 @@ const SetPasswordModal = ({ isOpen, onClose, resetToken, onSuccess }) => {
     handleSubmit,
     formState: { errors },
     reset,
-  } = useForm({
+  } = useForm<PasswordFormData>({
     resolver: zodResolver(passwordSchema),
     defaultValues: {
       newPassword: "",
@@ -47,7 +63,7 @@ const SetPasswordModal = ({ isOpen, onClose, resetToken, onSuccess }) => {
 
   // Handle password reset
   const onSubmit = useCallback(
-    async (data) => {
+    async (data: PasswordFormData) => {
       try {
         setIsLoading(true);
 
@@ -64,7 +80,8 @@ const SetPasswordModal = ({ isOpen, onClose, resetToken, onSuccess }) => {
         if (onSuccess) {
           onSuccess();
         }
-      } catch (error) {
+      } catch (err) {
+        const error = err as AxiosError<ApiError>;
         toast.error(
           error.response?.data?.message ||
             error.message ||
@@ -164,6 +181,6 @@ const SetPasswordModal = ({ isOpen, onClose, resetToken, onSuccess }) => {
       </div>
     </div>
   );
-};
+}
 
 export default memo(SetPasswordModal);

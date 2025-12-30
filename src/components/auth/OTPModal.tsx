@@ -1,10 +1,17 @@
-// OtpModal.js
-import React, { useState, useRef, useEffect, useCallback, memo } from "react";
+// OtpModal.tsx
+import { useState, useRef, useEffect, useCallback, memo } from "react";
 import { Button } from "../ui/button";
 import { Loader2 } from "lucide-react";
 
+type UseCase = "register" | "login" | "forgotPassword";
+
+interface ContentItem {
+  title: string;
+  description: string;
+}
+
 // Content is defined outside the component to prevent re-creation on each render
-const contentMap = {
+const contentMap: Record<UseCase, ContentItem> = {
   register: {
     title: "✅ Verify Your Account",
     description:
@@ -24,7 +31,18 @@ const contentMap = {
 
 const OTP_LENGTH = 6;
 
-const OtpModal = ({
+interface OTPModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  useCase?: UseCase;
+  onOtpChange?: (otp: string) => void;
+  onVerify?: () => void;
+  onResend?: () => void;
+  isVerifying?: boolean;
+  email?: string;
+}
+
+function OtpModal({
   isOpen,
   onClose,
   useCase = "register",
@@ -33,9 +51,9 @@ const OtpModal = ({
   onResend,
   isVerifying = false,
   email,
-}) => {
-  const [otp, setOtp] = useState(new Array(OTP_LENGTH).fill(""));
-  const inputRefs = useRef([]);
+}: OTPModalProps) {
+  const [otp, setOtp] = useState<string[]>(new Array(OTP_LENGTH).fill(""));
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const currentContent = contentMap[useCase] || contentMap.register;
 
@@ -55,9 +73,9 @@ const OtpModal = ({
   }, [otp, onOtpChange]);
 
   const handleChange = useCallback(
-    (element, index) => {
+    (element: HTMLInputElement, index: number) => {
       // Ensure only numbers are entered
-      if (isNaN(element.value)) return;
+      if (isNaN(Number(element.value))) return;
 
       const newOtp = [...otp];
       newOtp[index] = element.value;
@@ -72,7 +90,7 @@ const OtpModal = ({
   );
 
   const handleKeyDown = useCallback(
-    (e, index) => {
+    (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
       // Move focus to the previous input on backspace if current is empty
       if (e.key === "Backspace" && !otp[index] && index > 0) {
         inputRefs.current[index - 1]?.focus();
@@ -81,10 +99,10 @@ const OtpModal = ({
     [otp]
   );
 
-  const handlePaste = useCallback((e) => {
+  const handlePaste = useCallback((e: React.ClipboardEvent<HTMLDivElement>) => {
     e.preventDefault();
     const pastedData = e.clipboardData.getData("text").trim();
-    if (pastedData.length === OTP_LENGTH && !isNaN(pastedData)) {
+    if (pastedData.length === OTP_LENGTH && !isNaN(Number(pastedData))) {
       const newOtp = pastedData.split("");
       setOtp(newOtp);
       inputRefs.current[OTP_LENGTH - 1]?.focus(); // Focus the last input
@@ -132,9 +150,11 @@ const OtpModal = ({
             <input
               key={index}
               type="text"
-              maxLength="1"
+              maxLength={1}
               value={data}
-              ref={(el) => (inputRefs.current[index] = el)}
+              ref={(el) => {
+                inputRefs.current[index] = el;
+              }}
               onChange={(e) => handleChange(e.target, index)}
               onKeyDown={(e) => handleKeyDown(e, index)}
               className="h-10 w-10 rounded-sm border border-gray-300 text-center text-xl font-semibold outline-none focus:border-primary focus:ring-1 focus:ring-primary"
@@ -171,7 +191,7 @@ const OtpModal = ({
       </div>
     </div>
   );
-};
+}
 
 // Export the memoized component
 export default memo(OtpModal);
