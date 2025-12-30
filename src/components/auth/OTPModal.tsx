@@ -39,7 +39,7 @@ interface OTPModalProps {
   onVerify?: () => void;
   onResend?: () => void;
   isVerifying?: boolean;
-  email?: string;
+  email?: string | null;
 }
 
 function OtpModal({
