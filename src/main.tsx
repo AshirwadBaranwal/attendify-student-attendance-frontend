@@ -6,21 +6,21 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { lazy, Suspense } from "react";
 
 // Keep non-page components as static imports (usually fine)
-import ProtectedRoute from "@/components/global/ProtectedRoute.jsx";
-import PublicRoute from "@/components/global/PublicRoute.jsx";
-import AppLayout from "./components/global/AppLayout.jsx";
+import ProtectedRoute from "@/components/global/ProtectedRoute";
+import PublicRoute from "@/components/global/PublicRoute";
+import AppLayout from "./components/global/AppLayout";
 import store from "./redux/app/store";
 import { Toaster } from "./components/ui/sonner";
-import Loading from "./components/global/Loading.jsx";
+import Loading from "./components/global/Loading";
 
 // Lazy Imports for Pages (code splitting)
-const LoginPage = lazy(() => import("@/pages/auth/LoginPage.jsx"));
-const RegisterPage = lazy(() => import("@/pages/auth/RegisterPage.jsx"));
-const Dashboard = lazy(() => import("@/pages/dashboard/dashboard.jsx"));
-const SidebarLayout = lazy(() => import("./pages/dashboard/sidebarLayout.jsx"));
-const DepartmentPage = lazy(() => import("./pages/department/departmentPage.jsx"));
-const AdminPage = lazy(() => import("./pages/Admins/AdminPage.jsx"));
-const MyProfilePage = lazy(() => import("./pages/my-profile/MyProfilePage.jsx"));
+const LoginPage = lazy(() => import("@/pages/auth/LoginPage"));
+const RegisterPage = lazy(() => import("@/pages/auth/RegisterPage"));
+const Dashboard = lazy(() => import("@/pages/dashboard/dashboard"));
+const SidebarLayout = lazy(() => import("./pages/dashboard/sidebarLayout"));
+const DepartmentPage = lazy(() => import("./pages/department/departmentPage"));
+const AdminPage = lazy(() => import("./pages/Admins/AdminPage"));
+const MyProfilePage = lazy(() => import("./pages/my-profile/MyProfilePage"));
 
 const queryClient = new QueryClient();
 

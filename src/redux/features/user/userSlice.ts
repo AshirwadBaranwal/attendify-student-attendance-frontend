@@ -604,24 +604,9 @@ export const selectCollegeAdminPhone = (state: RootState) =>
 export const selectProfilePicture = (state: RootState) =>
   state.user.user?.collegeAdmin?.profilePicture;
 
-// --- College Selectors (Deeply Flattened) ---
+// --- College Selector (access nested fields: college?.name, college?._id, etc.) ---
 export const selectCollege = (state: RootState) =>
   state.user.user?.collegeAdmin?.collegeId;
-
-export const selectCollegeId = (state: RootState) =>
-  state.user.user?.collegeAdmin?.collegeId?._id;
-
-export const selectCollegeName = (state: RootState) =>
-  state.user.user?.collegeAdmin?.collegeId?.name;
-
-export const selectCollegeImage = (state: RootState) =>
-  state.user.user?.collegeAdmin?.collegeId?.image;
-
-export const selectCollegeLogo = (state: RootState) =>
-  state.user.user?.collegeAdmin?.collegeId?.logo;
-
-export const selectCollegeLetterHead = (state: RootState) =>
-  state.user.user?.collegeAdmin?.collegeId?.letterHead;
 
 // --- Loading State Selectors ---
 export const selectIsUpdatingProfilePicture = (state: RootState) =>
