@@ -98,6 +98,7 @@ export function AdminModal({
         {
           ...formData,
           collegeId,
+          collegeAdminName: collegeAdminName || "",
         },
         {
           onSuccess: () => {
@@ -246,8 +247,8 @@ export function AdminModal({
                   ? "Creating..."
                   : "Updating..."
                 : action === "create"
-                ? "Create & Send Invite"
-                : "Save Changes"}
+                  ? "Create & Send Invite"
+                  : "Save Changes"}
             </Button>
           </DialogFooter>
         </form>

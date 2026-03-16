@@ -53,6 +53,7 @@ interface CreateAdminInput {
   email: string;
   phone: string;
   departmentId: string;
+  collegeAdminName: string;
 }
 
 /**
